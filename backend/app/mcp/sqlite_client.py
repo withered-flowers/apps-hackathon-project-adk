@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import os
 from typing import Optional
 
 class SQLiteMCPClient:
@@ -7,7 +8,8 @@ class SQLiteMCPClient:
     A simulated MCP Client for SQLite.
     Provides tools for the AI agents to structure and query decision matrices.
     """
-    def __init__(self, db_path: str = "decisions.db"):
+    # Use /tmp for the database path so it works in Google Cloud Run's read-only filesystem!
+    def __init__(self, db_path: str = "/tmp/decisions.db"):
         self.db_path = db_path
 
     def execute_query(self, query: str, parameters: tuple = ()) -> str:

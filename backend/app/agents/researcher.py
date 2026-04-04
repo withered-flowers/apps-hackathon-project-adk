@@ -10,7 +10,8 @@ def run_researcher(session_id: str, criteria: str) -> str:
     if not client:
         return f"Based on your criteria ({criteria}), I would normally search the web here. (Mocked Google Search Results)"
 
-    google_search_tool = types.Tool(google_search=types.GoogleSearch())
+    # Use the correct dictionary format for the Google Search tool in the GenAI SDK
+    google_search_tool = {"google_search": {}}
     
     response = client.models.generate_content(
         model=MODEL_NAME,
