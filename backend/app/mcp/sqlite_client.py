@@ -1,7 +1,12 @@
 import sqlite3
 import json
+from typing import Optional
 
 class SQLiteMCPClient:
+    """
+    A simulated MCP Client for SQLite.
+    Provides tools for the AI agents to structure and query decision matrices.
+    """
     def __init__(self, db_path: str = "decisions.db"):
         self.db_path = db_path
 
@@ -22,5 +27,10 @@ class SQLiteMCPClient:
         except Exception as e:
             return json.dumps({"status": "error", "message": str(e)})
 
-# Initialize a global mock MCP client
+    def list_tables(self) -> str:
+        """Helper tool to let the AI see what tables already exist."""
+        query = "SELECT name FROM sqlite_master WHERE type='table';"
+        return self.execute_query(query)
+
+# Initialize a global MCP client
 sqlite_mcp = SQLiteMCPClient()
