@@ -70,7 +70,9 @@ async def get_history(session_id: str):
     if db:
         doc = await db.collection("decisions").document(session_id).get()
         if doc.exists:
-            matrix_data = doc.to_dict().get("matrix")
+            data = doc.to_dict()
+            if data:
+                matrix_data = data.get("matrix")
             
     return HistoryResponse(
         session_id=session_id,
