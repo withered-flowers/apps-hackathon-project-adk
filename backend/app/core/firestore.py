@@ -1,4 +1,5 @@
 import os
+from typing import List, Dict, Any
 from google.cloud import firestore
 
 # Initialize Async Firestore client safely
@@ -39,6 +40,9 @@ async def get_session_history(session_id: str) -> list:
         
     doc_ref = db.collection("sessions").document(session_id)
     doc = await doc_ref.get()
+    
     if doc.exists:
-        return doc.to_dict().get("messages", [])
+        data = doc.to_dict()
+        if data:
+            return data.get("messages", [])
     return []
