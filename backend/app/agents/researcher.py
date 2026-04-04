@@ -10,8 +10,10 @@ def run_researcher(session_id: str, criteria: str) -> str:
     if not client:
         return f"Based on your criteria ({criteria}), I would normally search the web here. (Mocked Google Search Results)"
 
-    # Use the correct dictionary format for the Google Search tool in the GenAI SDK
-    google_search_tool = {"google_search": {}}
+    # Use the typed classes from the SDK to satisfy the Pyright type checker
+    google_search_tool = types.Tool(
+        google_search=types.GoogleSearch()
+    )
     
     response = client.models.generate_content(
         model=MODEL_NAME,
@@ -22,4 +24,6 @@ def run_researcher(session_id: str, criteria: str) -> str:
             temperature=0.2
         )
     )
-    return response.text
+    
+    # response.text can technically be None if the model returns an empty payload
+    return response.text or "No information could be found."
