@@ -34,6 +34,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 		setInput("");
 		if (inputRef.current) {
 			inputRef.current.style.height = "auto";
+			inputRef.current.style.overflowY = "hidden";
 		}
 	};
 
@@ -153,6 +154,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 					))}
 					{loading && (
 						<motion.div
+							key="loading"
 							layout
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -170,7 +172,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 				<div ref={bottomRef} />
 			</div>
 
-			<div style={{ padding: "24px", background: "var(--color-bg-primary)" }}>
+			<div style={{ padding: "24px 24px 32px", background: "var(--color-bg-primary)" }}>
 				<form onSubmit={handleSubmit} style={{ position: "relative" }}>
 					<textarea
 						ref={inputRef}
@@ -178,7 +180,13 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 						onChange={(e) => {
 							setInput(e.target.value);
 							e.target.style.height = "auto";
-							e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+							const nextHeight = Math.min(e.target.scrollHeight, 160);
+							e.target.style.height = `${nextHeight}px`;
+							if (e.target.scrollHeight > 160) {
+								e.target.style.overflowY = "auto";
+							} else {
+								e.target.style.overflowY = "hidden";
+							}
 						}}
 						onKeyDown={handleKeyDown}
 						placeholder={
@@ -200,6 +208,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 							transition: "border-color var(--transition-fast)",
 							lineHeight: 1.5,
 							maxHeight: "160px",
+							overflowY: "hidden",
 						}}
 						onFocus={(e) =>
 							(e.target.style.borderColor = "var(--color-text-muted)")
