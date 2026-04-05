@@ -29,12 +29,16 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 		e.preventDefault();
 		const trimmed = input.trim();
 		if (!trimmed || loading || disabled) return;
+
 		onSend(trimmed);
 		setInput("");
+		if (inputRef.current) {
+			inputRef.current.style.height = "auto";
+		}
 	};
 
 	const handleKeyDown = (e) => {
-		if (e.key === "Enter" && !e.shiftKey) {
+		if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
 			e.preventDefault();
 			handleSubmit(e);
 		}
@@ -171,7 +175,11 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 					<textarea
 						ref={inputRef}
 						value={input}
-						onChange={(e) => setInput(e.target.value)}
+						onChange={(e) => {
+							setInput(e.target.value);
+							e.target.style.height = "auto";
+							e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+						}}
 						onKeyDown={handleKeyDown}
 						placeholder={
 							disabled ? "Advisory session complete." : "Ask your question..."
@@ -312,7 +320,7 @@ function MessageBubble({ message }) {
 				<div
 					className={isUser ? "bubble-user" : "bubble-assistant"}
 					style={{
-						padding: isUser ? "12px 16px" : "0",
+						padding: isUser ? "12px 16px" : "4px 0 4px 16px",
 						fontSize: "0.9rem",
 						lineHeight: 1.6,
 						whiteSpace: "pre-wrap",

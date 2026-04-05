@@ -3,6 +3,7 @@
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { ExternalLinkIcon } from "@radix-ui/react-icons";
 
 export default function DecisionMatrix({ matrix }) {
 	const options = useMemo(() => matrix?.options ?? [], [matrix]);
@@ -151,12 +152,20 @@ export default function DecisionMatrix({ matrix }) {
 												rel="noopener noreferrer"
 												style={{
 													color: "var(--color-text-muted)",
-													fontSize: "0.8rem",
+													display: "inline-flex",
+													alignItems: "center",
+													justifyContent: "center",
+													width: "24px",
+													height: "24px",
+													borderRadius: "4px",
 													textDecoration: "none",
-													borderBottom: "1px solid var(--matrix-border)",
+													border: "1px solid var(--matrix-border)",
+													background: "var(--color-bg-card)",
+													transition: "all var(--transition-fast)"
 												}}
+												title="External Link"
 											>
-												[Ext Link]
+												<ExternalLinkIcon width={14} height={14} />
 											</a>
 										) : (
 											<span style={{ color: "var(--color-text-muted)" }}>
