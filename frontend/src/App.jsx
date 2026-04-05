@@ -8,6 +8,7 @@ import ChatInterface from "./components/ChatInterface";
 import DecisionMatrix from "./components/DecisionMatrix";
 import ExportButton from "./components/ExportButton";
 import { ErrorBanner } from "./components/LoadingSpinner";
+import SessionList from "./components/SessionList";
 import ThemeToggle from "./components/ThemeToggle";
 import { newSession, sendMessage } from "./services/api";
 
@@ -22,6 +23,7 @@ export default function App() {
 	const [agent, setAgent] = useState("");
 	const [matrix, setMatrix] = useState(null);
 	const [error, setError] = useState("");
+	const [showSessions, setShowSessions] = useState(false);
 
 	useEffect(() => {
 		localStorage.setItem("theme", theme);
@@ -104,7 +106,18 @@ export default function App() {
 		setAgent("");
 		setMatrix(null);
 		setError("");
+		setShowSessions(false);
 	};
+
+	const handleSelectSession = useCallback((data) => {
+		setSessionId(data.sessionId);
+		setMessages(data.messages);
+		setMatrix(data.matrix);
+		setStatus(data.status);
+		setAgent("");
+		setError("");
+		setShowSessions(false);
+	}, []);
 
 	const toggleTheme = () =>
 		setTheme((prev) => (prev === "dark" ? "light" : "dark"));
@@ -182,6 +195,57 @@ export default function App() {
 					{error && (
 						<div style={{ padding: "16px 24px 0" }}>
 							<ErrorBanner message={error} onDismiss={() => setError("")} />
+						</div>
+					)}
+
+					{messages.length === 0 && !showSessions && (
+						<div
+							style={{
+								padding: "16px 24px",
+								display: "flex",
+								gap: "8px",
+							}}
+						>
+							<button
+								type="button"
+								className="btn-secondary"
+								onClick={() => setShowSessions(true)}
+								style={{ fontSize: "0.8rem", padding: "6px 12px" }}
+							>
+								Recent Sessions
+							</button>
+						</div>
+					)}
+
+					{messages.length === 0 && showSessions && (
+						<div
+							style={{
+								padding: "0 24px 16px",
+								display: "flex",
+								flexDirection: "column",
+								gap: "8px",
+							}}
+						>
+							<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+								<button
+									type="button"
+									className="btn-secondary"
+									onClick={() => setShowSessions(false)}
+									style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+								>
+									← Back
+								</button>
+								<span
+									style={{
+										fontSize: "0.8rem",
+										color: "var(--color-text-muted)",
+										fontWeight: 500,
+									}}
+								>
+									Recent Sessions
+								</span>
+							</div>
+							<SessionList onSelectSession={handleSelectSession} />
 						</div>
 					)}
 

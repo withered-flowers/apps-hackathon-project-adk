@@ -84,6 +84,15 @@ export async function newSession() {
 }
 
 /**
+ * Get the 5 most recent sessions.
+ * @returns {Promise<Array>}
+ */
+export async function getRecentSessions() {
+  const res = await api.get('/sessions/recent');
+  return res.data.sessions;
+}
+
+/**
  * Export the current session report to Google Drive.
  * @param {string} sessionId
  * @returns {Promise<{session_id, drive_url}>}

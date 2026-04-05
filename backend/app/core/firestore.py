@@ -1,4 +1,5 @@
 """Firestore client singleton with CRUD operations for DecisionSession."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -47,6 +48,31 @@ async def save_session(session_data: dict[str, Any]) -> None:
 
     await db.collection("sessions").document(session_id).set(data, merge=True)
     logger.info("Session saved: session_id=%s status=%s", session_id, data.get("status"))
+
+
+async def list_sessions(limit: int = 5) -> list[dict[str, Any]]:
+    """List the most recent sessions ordered by last_message_at descending."""
+    db = get_firestore()
+    snapshot = (
+        db.collection("sessions")
+        .order_by("last_message_at", direction=firestore.Query.DESCENDING)
+        .limit(limit)
+        .stream()
+    )
+    results = []
+    async for doc in snapshot:
+        data = doc.to_dict()
+        results.append(
+            {
+                "session_id": doc.id,
+                "topic": data.get("topic", ""),
+                "status": data.get("status", ""),
+                "last_message_at": data.get("last_message_at"),
+                "criteria": data.get("criteria", []),
+                "options": data.get("options", []),
+            }
+        )
+    return results
 
 
 def _prepare_for_firestore(data: Any) -> Any:

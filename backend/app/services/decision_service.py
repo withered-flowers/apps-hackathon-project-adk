@@ -10,11 +10,13 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from app.agents.primary import get_pipeline, DecisionPipeline
+from app.agents.primary import DecisionPipeline, get_pipeline
 from app.core.errors import SessionNotFoundError
 from app.core.firestore import get_session, save_session
+from app.core.firestore import list_sessions as _list_sessions
 from app.core.logging import get_logger
 from app.mcp import sqlite_client
 from app.models.entities import DecisionSession, Message
@@ -222,7 +224,7 @@ async def _save_and_build_response(
     }
 
 
-async def process_message_stream(session_id: str, user_message: str) -> AsyncGenerator[str, None]:
+async def process_message_stream(session_id: str, user_message: str) -> AsyncGenerator[str]:
     """
     Process a user message and stream real-time agent status updates via SSE.
 
@@ -440,6 +442,11 @@ async def get_history(session_id: str) -> HistoryResponse:
 def generate_session_id() -> str:
     """Generate a new unique session ID."""
     return str(uuid.uuid4())
+
+
+async def list_recent_sessions(limit: int = 5) -> list[dict[str, Any]]:
+    """Return the most recent sessions with summary info."""
+    return await _list_sessions(limit)
 
 
 def _session_to_dict(session: DecisionSession) -> dict[str, Any]:
