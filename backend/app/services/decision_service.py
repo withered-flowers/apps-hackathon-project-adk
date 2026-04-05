@@ -445,8 +445,24 @@ def generate_session_id() -> str:
 
 
 async def list_recent_sessions(limit: int = 5) -> list[dict[str, Any]]:
-    """Return the most recent sessions with summary info."""
-    return await _list_sessions(limit)
+    """Return the most recent sessions with summary info matching RecentSessionSummary."""
+    raw = await _list_sessions(limit)
+    results = []
+    for s in raw:
+        ts = s.get("last_message_at")
+        if hasattr(ts, "isoformat"):
+            ts = ts.isoformat()
+        results.append(
+            {
+                "session_id": s["session_id"],
+                "topic": s.get("topic", ""),
+                "status": s.get("status", ""),
+                "last_message_at": ts,
+                "criteria_count": len(s.get("criteria", [])),
+                "options_count": len(s.get("options", [])),
+            }
+        )
+    return results
 
 
 def _session_to_dict(session: DecisionSession) -> dict[str, Any]:

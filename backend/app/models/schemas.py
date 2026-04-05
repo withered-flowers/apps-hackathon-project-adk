@@ -1,4 +1,5 @@
 """Pydantic schemas for API request/response contracts."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -47,3 +48,20 @@ class HistoryResponse(BaseModel):
     session_id: str
     messages: list[MessageEntry] = Field(default_factory=list)
     matrix: MatrixData = Field(default_factory=MatrixData)
+
+
+class RecentSessionSummary(BaseModel):
+    """Summary info for a recent session listing."""
+
+    session_id: str
+    topic: str = Field(default="", description="The user's original decision question")
+    status: str = Field(default="", description="Session status")
+    last_message_at: str | None = Field(default=None, description="ISO timestamp of last activity")
+    criteria_count: int = Field(default=0, description="Number of criteria collected")
+    options_count: int = Field(default=0, description="Number of options found")
+
+
+class RecentSessionsResponse(BaseModel):
+    """List of the most recent sessions."""
+
+    sessions: list[RecentSessionSummary] = Field(default_factory=list)

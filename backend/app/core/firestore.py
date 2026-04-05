@@ -62,6 +62,8 @@ async def list_sessions(limit: int = 5) -> list[dict[str, Any]]:
     results = []
     async for doc in snapshot:
         data = doc.to_dict()
+        if data is None:
+            continue
         results.append(
             {
                 "session_id": doc.id,

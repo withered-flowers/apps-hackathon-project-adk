@@ -5,7 +5,12 @@ from fastapi.responses import StreamingResponse
 
 from app.core.errors import SessionNotFoundError
 from app.core.logging import get_logger
-from app.models.schemas import ChatRequest, ChatResponse, HistoryResponse
+from app.models.schemas import (
+    ChatRequest,
+    ChatResponse,
+    HistoryResponse,
+    RecentSessionsResponse,
+)
 from app.services.decision_service import (
     generate_session_id,
     get_history,
@@ -87,11 +92,11 @@ async def new_session() -> dict[str, str]:
     return {"session_id": generate_session_id()}
 
 
-@router.get("/sessions/recent", tags=["Session"])
-async def recent_sessions() -> dict[str, list]:
+@router.get("/sessions/recent", response_model=RecentSessionsResponse, tags=["Session"])
+async def recent_sessions() -> RecentSessionsResponse:
     """List the 5 most recent sessions."""
     sessions = await list_recent_sessions(limit=5)
-    return {"sessions": sessions}
+    return RecentSessionsResponse(sessions=sessions)
 
 
 @router.post("/export/{session_id}", tags=["Export"])
