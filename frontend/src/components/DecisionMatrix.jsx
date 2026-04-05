@@ -22,7 +22,7 @@ export default function DecisionMatrix({ matrix }) {
 			initial={{ opacity: 0, scale: 0.98 }}
 			animate={{ opacity: 1, scale: 1 }}
 			className="glass-card glass-refraction"
-			style={{ padding: "32px", overflow: "hidden" }}
+			style={{ padding: "32px", overflow: "visible" }}
 		>
 			<div
 				style={{
