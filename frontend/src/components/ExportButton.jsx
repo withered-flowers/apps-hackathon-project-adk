@@ -1,27 +1,27 @@
-import { ExternalLinkIcon, FileTextIcon } from "@radix-ui/react-icons";
+import { DownloadIcon, FileTextIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { exportToDrive } from "../services/api";
+import { downloadMarkdownReport } from "../services/api";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 export default function ExportButton({ sessionId }) {
 	const [loading, setLoading] = useState(false);
-	const [driveUrl, setDriveUrl] = useState("");
+	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState("");
 
-	const handleExport = async () => {
+	const handleDownload = async () => {
 		setLoading(true);
 		setError("");
 		try {
-			const data = await exportToDrive(sessionId);
-			setDriveUrl(data.drive_url);
+			await downloadMarkdownReport(sessionId);
+			setSuccess(true);
 		} catch {
-			setError("Export processing failed. Verify Drive configuration.");
+			setError("Download failed. Please try again.");
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	if (driveUrl) {
+	if (success) {
 		return (
 			<div
 				style={{
@@ -37,22 +37,8 @@ export default function ExportButton({ sessionId }) {
 			>
 				<FileTextIcon style={{ color: "var(--color-accent)" }} />
 				<span style={{ color: "var(--color-text-secondary)" }}>
-					Commit successful:
+					Report downloaded successfully
 				</span>
-				<a
-					href={driveUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					style={{
-						color: "var(--color-text-primary)",
-						display: "flex",
-						alignItems: "center",
-						gap: "6px",
-						textDecoration: "none",
-					}}
-				>
-					Open Reference <ExternalLinkIcon />
-				</a>
 			</div>
 		);
 	}
@@ -61,7 +47,7 @@ export default function ExportButton({ sessionId }) {
 		<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
 			<button
 				className="btn-secondary"
-				onClick={handleExport}
+				onClick={handleDownload}
 				disabled={loading}
 				type="button"
 				style={{
@@ -72,8 +58,8 @@ export default function ExportButton({ sessionId }) {
 					width: "100%",
 				}}
 			>
-				{loading ? <LoadingSpinner size={16} /> : <FileTextIcon />}
-				{loading ? "Committing..." : "Commit Context to Drive"}
+				{loading ? <LoadingSpinner size={16} /> : <DownloadIcon />}
+				{loading ? "Generating..." : "Download Report as Markdown"}
 			</button>
 			{error && (
 				<div

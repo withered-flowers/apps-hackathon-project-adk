@@ -93,13 +93,34 @@ export async function getRecentSessions() {
 }
 
 /**
- * Export the current session report to Google Drive.
+ * Download the decision report as a markdown file.
  * @param {string} sessionId
- * @returns {Promise<{session_id, drive_url}>}
+ * @returns {Promise<void>}
  */
-export async function exportToDrive(sessionId) {
-  const res = await api.post(`/export/${sessionId}`);
-  return res.data;
+export async function downloadMarkdownReport(sessionId) {
+  const res = await fetch(`/api/export/${sessionId}/download`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  const blob = await res.blob();
+  const contentDisposition = res.headers.get('Content-Disposition');
+  let filename = 'decidely-report.md';
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+    if (match) {
+      filename = match[1];
+    }
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }
 
 export default api;

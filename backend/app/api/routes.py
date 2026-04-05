@@ -1,7 +1,7 @@
 """API route handlers for Decidely.ai — chat, history, and export endpoints."""
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 
 from app.core.errors import SessionNotFoundError
 from app.core.logging import get_logger
@@ -19,6 +19,7 @@ from app.services.decision_service import (
     process_message_stream,
 )
 from app.services.report_service import export_report
+from app.services.markdown_service import generate_markdown_download
 
 logger = get_logger("api.routes")
 
@@ -118,3 +119,30 @@ async def export_session_report(session_id: str) -> dict[str, str]:
         raise HTTPException(status_code=503, detail="Export service unavailable") from exc
 
     return {"session_id": session_id, "drive_url": url}
+
+
+@router.get("/export/{session_id}/download", tags=["Export"])
+async def download_markdown_report(session_id: str) -> Response:
+    """
+    Download the decision report as a markdown file.
+
+    Returns a .md file with session summary, decision matrix, and SWOT analysis.
+    Raises 404 if session not found.
+    """
+    logger.info("GET /api/export/%s/download", session_id)
+
+    try:
+        filename, content = await generate_markdown_download(session_id)
+    except SessionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.error("Markdown generation failed for session=%s: %s", session_id, exc)
+        raise HTTPException(status_code=500, detail="Failed to generate report") from exc
+
+    return Response(
+        content=content,
+        media_type="text/markdown",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )

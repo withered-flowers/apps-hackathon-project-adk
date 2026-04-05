@@ -18,6 +18,7 @@ graph TD
     EA -->|read/write| MCP[(SQLite MCP\nDecision Matrix)]
     BE -->|persist| FS[(Firestore\nSession Storage)]
     BE -->|export| DM[Google Drive MCP\nReport Export]
+    BE -->|download| MG[Markdown Generator MCP\nReport Download]
 ```
 
 ## Tech Stack
@@ -29,7 +30,7 @@ graph TD
 | AI Agents | Gemini 2.0 Flash via Google ADK |
 | Storage | Google Cloud Firestore |
 | Decision Matrix | SQLite via MCP |
-| Report Export | Google Drive via MCP |
+| Report Export | Google Drive via MCP, Markdown Generator MCP |
 | Deployment | Cloud Run (backend), GitHub Pages (frontend) |
 
 ## Prerequisites
@@ -71,7 +72,7 @@ App starts at <http://localhost:5173>.
 4. Watch the Researcher find current options via Google Search
 5. See the Evaluator produce a weighted comparison matrix
 6. Receive the Supporter's final recommendation
-7. Click **Save Report to Google Drive** to export your decision
+7. Click **Download Report as Markdown** to save your decision report
 
 ## Project Structure
 
@@ -84,7 +85,7 @@ backend/
 │   │   ├── researcher.py
 │   │   ├── evaluator.py
 │   │   └── supporter.py
-│   ├── mcp/             # MCP clients (SQLite, Drive)
+│   ├── mcp/             # MCP clients (SQLite, Drive, Markdown Generator)
 │   ├── core/            # Config, Firestore, logging, errors
 │   ├── api/             # FastAPI routes
 │   ├── models/          # Pydantic schemas & entities
@@ -106,9 +107,12 @@ specs/001-decidely-ai-core/  # Design artifacts
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/api/chat` | Send a message, advance the pipeline |
+| `POST` | `/api/chat/stream` | Stream real-time agent status updates via SSE |
 | `GET` | `/api/history/{session_id}` | Get conversation history |
 | `GET` | `/api/session/new` | Generate a new session ID |
+| `GET` | `/api/sessions/recent` | List the 5 most recent sessions |
 | `POST` | `/api/export/{session_id}` | Export report to Google Drive |
+| `GET` | `/api/export/{session_id}/download` | Download report as markdown file |
 | `GET` | `/health` | Health check |
 
 ## Notes for Reviewers
