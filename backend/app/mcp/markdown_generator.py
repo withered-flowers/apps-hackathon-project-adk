@@ -89,7 +89,7 @@ def _generate_decision_matrix(
 
     header = (
         "| Option | "
-        + " | ".join(f"{name} (w={w})" for name, w in zip(crit_names, crit_weights))
+        + " | ".join(f"{name} (w={w})" for name, w in zip(crit_names, crit_weights, strict=False))
         + " | Total Score |"
     )
     separator = "|" + "|".join(["--------"] * (len(crit_names) + 2)) + "|"

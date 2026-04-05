@@ -8,17 +8,33 @@ Decidely.ai helps you make confident decisions through a structured AI-guided pr
 
 ```mermaid
 graph TD
-    User([User]) -->|message| FE[React + Vite Frontend]
-    FE -->|POST /api/chat| BE[FastAPI Backend]
-    BE --> PA[Primary Agent\nOrchestrator]
-    PA --> IA[InterviewerAgent\n💬 Criteria Extraction]
-    PA --> RA[ResearcherAgent\n🔍 Google Search Grounding]
-    PA --> EA[EvaluatorAgent\n⚖️ Decision Matrix]
-    PA --> SA[SupporterAgent\n🎉 Final Recommendation]
-    EA -->|read/write| MCP[(SQLite MCP\nDecision Matrix)]
-    BE -->|persist| FS[(Firestore\nSession Storage)]
-    BE -->|export| DM[Google Drive MCP\nReport Export]
-    BE -->|download| MG[Markdown Generator MCP\nReport Download]
+    classDef userNode fill:#ede9fe,stroke:#a78bfa,color:#5b21b6,stroke-width:3px,rx:10px,ry:10px
+    classDef frontendNode fill:#dbeafe,stroke:#60a5fa,color:#1e40af,stroke-width:3px,rx:10px,ry:10px
+    classDef backendNode fill:#e0e7ff,stroke:#818cf8,color:#3730a3,stroke-width:3px,rx:10px,ry:10px
+    classDef orchestratorNode fill:#fce7f3,stroke:#f472b6,color:#9d174d,stroke-width:3px,rx:10px,ry:10px
+    classDef agentNode fill:#f1f5f9,stroke:#94a3b8,color:#475569,stroke-width:2px,rx:8px,ry:8px
+    classDef storageNode fill:#d1fae5,stroke:#34d399,color:#065f46,stroke-width:3px,rx:10px,ry:10px
+    classDef exportNode fill:#fef3c7,stroke:#fbbf24,color:#92400e,stroke-width:3px,rx:10px,ry:10px
+
+    User(["<b>👤 User</b>"]) -->|"<b>message</b>"| FE["<b>⚛️ React + Vite Frontend</b>"]
+    FE -->|"<b>POST /api/chat</b>"| BE["<b>🖥️ FastAPI Backend</b>"]
+    BE --> PA["<b>🎯 Primary Agent<br/>Orchestrator</b>"]
+    PA --> IA["<b>💬 Interviewer Agent<br/>Criteria Extraction</b>"]
+    PA --> RA["<b>🔍 Researcher Agent<br/>Google Search Grounding</b>"]
+    PA --> EA["<b>⚖️ Evaluator Agent<br/>Decision Matrix</b>"]
+    PA --> SA["<b>🎉 Supporter Agent<br/>Final Recommendation</b>"]
+    EA -.->|"<b>read/write</b>"| MCP[("<b>🗃️ SQLite MCP<br/>Decision Matrix</b>")]
+    BE -->|"<b>persist</b>"| FS[("<b>📦 Firestore<br/>Session Storage</b>")]
+    BE -->|"<b>export</b>"| DM["<b>📄 Google Drive MCP<br/>Report Export</b>"]
+    BE -->|"<b>download</b>"| MG["<b>📥 Markdown Generator MCP<br/>Report Download</b>"]
+
+    class User userNode
+    class FE frontendNode
+    class BE backendNode
+    class PA orchestratorNode
+    class IA,RA,EA,SA agentNode
+    class MCP,FS storageNode
+    class DM,MG exportNode
 ```
 
 ## Tech Stack
