@@ -150,7 +150,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 
 				<AnimatePresence initial={false}>
 					{messages.map((msg, idx) => (
-						<MessageBubble key={idx} message={msg} />
+						<MessageBubble key={idx} message={msg} isProgress={msg.isProgress} />
 					))}
 					{loading && (
 						<motion.div
@@ -289,7 +289,7 @@ const AgentAvatar = memo(({ agent }) => {
 	);
 });
 
-function MessageBubble({ message }) {
+function MessageBubble({ message, isProgress }) {
 	const isUser = message.role === "user";
 	return (
 		<motion.div
@@ -300,7 +300,7 @@ function MessageBubble({ message }) {
 				display: "flex",
 				flexDirection: isUser ? "row-reverse" : "row",
 				gap: "16px",
-				maxWidth: "85%",
+				maxWidth: isProgress ? "100%" : "85%",
 				alignSelf: isUser ? "flex-end" : "flex-start",
 			}}
 		>
@@ -327,10 +327,20 @@ function MessageBubble({ message }) {
 					</span>
 				)}
 				<div
-					className={isUser ? "bubble-user" : "bubble-assistant"}
+					className={
+						isProgress
+							? "bubble-progress"
+							: isUser
+								? "bubble-user"
+								: "bubble-assistant"
+					}
 					style={{
-						padding: isUser ? "12px 16px" : "4px 0 4px 16px",
-						fontSize: "0.9rem",
+						padding: isProgress
+							? "10px 16px"
+							: isUser
+								? "12px 16px"
+								: "4px 0 4px 16px",
+						fontSize: isProgress ? "0.82rem" : "0.9rem",
 						lineHeight: 1.6,
 						whiteSpace: "pre-wrap",
 						wordBreak: "break-word",

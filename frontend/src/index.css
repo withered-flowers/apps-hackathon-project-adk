@@ -211,6 +211,14 @@ html, body, #root {
   border-radius: 0;
 }
 
+.bubble-progress {
+  background: var(--status-bg);
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  font-style: italic;
+}
+
 /* Shimmer Loading Effect */
 @keyframes shimmer {
   0% { transform: translateX(-100%); }

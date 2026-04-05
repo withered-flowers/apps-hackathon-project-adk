@@ -1,10 +1,13 @@
 """API route handlers for Decidely.ai — chat, history, and export endpoints."""
+
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.core.errors import SessionNotFoundError
 from app.core.logging import get_logger
 from app.models.schemas import ChatRequest, ChatResponse, HistoryResponse
 from app.services.decision_service import generate_session_id, get_history, process_message
+from app.services.decision_service import process_message_stream
 from app.services.report_service import export_report
 
 logger = get_logger("api.routes")
@@ -24,12 +27,36 @@ async def chat(request: ChatRequest) -> ChatResponse:
     # Auto-generate session_id if not provided or empty
     session_id = request.session_id or generate_session_id()
 
-    logger.info(
-        "POST /api/chat session_id=%s message_len=%d", session_id, len(request.message)
-    )
+    logger.info("POST /api/chat session_id=%s message_len=%d", session_id, len(request.message))
 
     response = await process_message(session_id=session_id, user_message=request.message)
     return response
+
+
+@router.post("/chat/stream", tags=["Chat"])
+async def chat_stream(request: ChatRequest) -> StreamingResponse:
+    """
+    Process a user message and stream real-time agent status updates via SSE.
+
+    Events emitted:
+    - status: {agent, status} — emitted at each pipeline phase transition
+    - done: {session_id, agent, response, status, matrix} — final payload
+    """
+    session_id = request.session_id or generate_session_id()
+
+    logger.info(
+        "POST /api/chat/stream session_id=%s message_len=%d", session_id, len(request.message)
+    )
+
+    return StreamingResponse(
+        process_message_stream(session_id, request.message),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/history/{session_id}", response_model=HistoryResponse, tags=["Chat"])

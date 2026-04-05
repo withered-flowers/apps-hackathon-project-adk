@@ -9,14 +9,59 @@ const api = axios.create({
 });
 
 /**
- * Send a chat message and receive an agent response.
+ * Send a chat message and receive real-time SSE status updates.
  * @param {string} sessionId
  * @param {string} message
+ * @param {function} onStatus - callback({agent, status}) for badge
+ * @param {function} onProgress - callback({agent, status, message}) for chat
  * @returns {Promise<{session_id, agent, response, status, matrix}>}
  */
-export async function sendMessage(sessionId, message) {
-  const res = await api.post('/chat', { session_id: sessionId, message });
-  return res.data;
+export async function sendMessage(sessionId, message, onStatus, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/chat/stream`);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.timeout = 120000;
+
+    let buffer = "";
+
+    xhr.onprogress = () => {
+      const text = xhr.responseText.slice(buffer.length);
+      buffer = xhr.responseText;
+      const lines = text.split("\n");
+      let eventType = "";
+      for (const line of lines) {
+        if (line.startsWith("event: ")) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith("data: ") && eventType) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (eventType === "status" && onStatus) {
+              onStatus(data);
+            } else if (eventType === "progress" && onProgress) {
+              onProgress(data);
+            } else if (eventType === "done") {
+              resolve(data);
+            }
+          } catch {
+            // skip malformed JSON
+          }
+          eventType = "";
+        }
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 400) {
+        reject(new Error(`HTTP ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.ontimeout = () => reject(new Error("Request timed out"));
+
+    xhr.send(JSON.stringify({ session_id: sessionId, message }));
+  });
 }
 
 /**

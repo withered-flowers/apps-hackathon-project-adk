@@ -50,7 +50,27 @@ export default function App() {
 
 			try {
 				const sid = await ensureSession();
-				const data = await sendMessage(sid, text);
+				const data = await sendMessage(
+					sid,
+					text,
+					(statusUpdate) => {
+						setStatus(statusUpdate.status);
+						setAgent(statusUpdate.agent);
+					},
+					(progress) => {
+						setStatus(progress.status);
+						setAgent(progress.agent);
+						setMessages((prev) => [
+							...prev,
+							{
+								role: "assistant",
+								content: progress.message,
+								agent: progress.agent,
+								isProgress: true,
+							},
+						]);
+					},
+				);
 
 				setStatus(data.status);
 				setAgent(data.agent);

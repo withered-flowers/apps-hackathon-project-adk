@@ -8,6 +8,7 @@ export default function AgentStatusBadge({ agent, status }) {
     Interviewing: { color: 'var(--color-text-secondary)', label: 'Interviewing' },
     Researching:  { color: 'var(--color-text-secondary)', label: 'Researching' },
     Evaluating:   { color: 'var(--color-text-secondary)', label: 'Evaluating' },
+    Supporting:   { color: 'var(--color-text-secondary)', label: 'Supporting' },
     Complete:     { color: 'var(--color-accent)', label: 'Complete' },
   };
 
