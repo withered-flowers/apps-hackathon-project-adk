@@ -1,77 +1,87 @@
-import { useState } from 'react';
-import { exportToDrive } from '../services/api';
-import { LoadingSpinner } from './LoadingSpinner';
+import { ExternalLinkIcon, FileTextIcon } from "@radix-ui/react-icons";
+import { useState } from "react";
+import { exportToDrive } from "../services/api";
+import { LoadingSpinner } from "./LoadingSpinner";
 
-/**
- * ExportButton — appears when a session is Complete.
- * Calls POST /api/export/{sessionId} and shows a link to the Drive doc.
- */
 export default function ExportButton({ sessionId }) {
-  const [loading, setLoading] = useState(false);
-  const [driveUrl, setDriveUrl] = useState('');
-  const [error, setError] = useState('');
+	const [loading, setLoading] = useState(false);
+	const [driveUrl, setDriveUrl] = useState("");
+	const [error, setError] = useState("");
 
-  const handleExport = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await exportToDrive(sessionId);
-      setDriveUrl(data.drive_url);
-    } catch (err) {
-      setError('Export failed — make sure Google Drive MCP is configured.');
-    } finally {
-      setLoading(false);
-    }
-  };
+	const handleExport = async () => {
+		setLoading(true);
+		setError("");
+		try {
+			const data = await exportToDrive(sessionId);
+			setDriveUrl(data.drive_url);
+		} catch {
+			setError("Export processing failed. Verify Drive configuration.");
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  if (driveUrl) {
-    return (
-      <div
-        className="animate-fade-in"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '12px 16px',
-          background: 'rgba(72, 187, 120, 0.1)',
-          border: '1px solid rgba(72, 187, 120, 0.3)',
-          borderRadius: '12px',
-          fontSize: '0.88rem',
-        }}
-      >
-        <span>📄</span>
-        <span style={{ color: 'var(--color-text-secondary)' }}>Report saved to Drive:</span>
-        <a
-          href={driveUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: '#48bb78', fontWeight: 600, textDecoration: 'none' }}
-          onMouseEnter={e => (e.target.style.textDecoration = 'underline')}
-          onMouseLeave={e => (e.target.style.textDecoration = 'none')}
-        >
-          Open Document ↗
-        </a>
-      </div>
-    );
-  }
+	if (driveUrl) {
+		return (
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					gap: "12px",
+					padding: "12px 16px",
+					background: "rgba(255,255,255,0.02)",
+					border: "1px solid var(--color-border)",
+					borderRadius: "8px",
+					fontSize: "0.85rem",
+				}}
+			>
+				<FileTextIcon style={{ color: "var(--color-accent)" }} />
+				<span style={{ color: "var(--color-text-secondary)" }}>
+					Commit successful:
+				</span>
+				<a
+					href={driveUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					style={{
+						color: "var(--color-text-primary)",
+						display: "flex",
+						alignItems: "center",
+						gap: "6px",
+						textDecoration: "none",
+					}}
+				>
+					Open Reference <ExternalLinkIcon />
+				</a>
+			</div>
+		);
+	}
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <button
-        id="export-to-drive-btn"
-        className="btn-secondary"
-        onClick={handleExport}
-        disabled={loading}
-        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-      >
-        {loading ? <LoadingSpinner size={16} /> : <span>📄</span>}
-        {loading ? 'Exporting...' : 'Save Report to Google Drive'}
-      </button>
-      {error && (
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-red)', marginLeft: '4px' }}>
-          {error}
-        </p>
-      )}
-    </div>
-  );
+	return (
+		<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+			<button
+				className="btn-secondary"
+				onClick={handleExport}
+				disabled={loading}
+				type="button"
+				style={{
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					gap: "8px",
+					width: "100%",
+				}}
+			>
+				{loading ? <LoadingSpinner size={16} /> : <FileTextIcon />}
+				{loading ? "Committing..." : "Commit Context to Drive"}
+			</button>
+			{error && (
+				<div
+					style={{ fontSize: "0.75rem", color: "#fca5a5", textAlign: "center" }}
+				>
+					{error}
+				</div>
+			)}
+		</div>
+	);
 }

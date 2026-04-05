@@ -1,64 +1,42 @@
-import { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 
-/**
- * AgentStatusBadge — shows current pipeline agent and session status.
- */
 export default function AgentStatusBadge({ agent, status }) {
   if (!agent && !status) return null;
 
-  const statusColors = {
-    Interviewing: { bg: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed', label: '💬 Interviewing' },
-    Researching:  { bg: 'rgba(159, 122, 234, 0.15)', color: '#9f7aea', label: '🔍 Researching' },
-    Evaluating:   { bg: 'rgba(237, 137, 54, 0.15)', color: '#ed8936', label: '⚖️ Evaluating' },
-    Complete:     { bg: 'rgba(72, 187, 120, 0.15)',  color: '#48bb78', label: '✅ Complete' },
+  const statusMap = {
+    Interviewing: { color: 'var(--color-text-secondary)', label: 'Interviewing' },
+    Researching:  { color: 'var(--color-text-secondary)', label: 'Researching' },
+    Evaluating:   { color: 'var(--color-text-secondary)', label: 'Evaluating' },
+    Complete:     { color: 'var(--color-accent)', label: 'Complete' },
   };
 
-  const cfg = statusColors[status] || statusColors.Interviewing;
+  const cfg = statusMap[status] || statusMap.Interviewing;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '8px 16px',
-        background: 'var(--color-bg-card)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '12px',
-        fontSize: '0.82rem',
-      }}
-    >
-      {/* Status phase */}
-      <span
-        style={{
-          background: cfg.bg,
-          color: cfg.color,
-          padding: '4px 10px',
-          borderRadius: '20px',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-        }}
-      >
-        <span
-          className="pulse-dot"
-          style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: cfg.color,
-            display: status !== 'Complete' ? 'inline-block' : 'none',
-          }}
-        />
-        {cfg.label}
-      </span>
-
-      {/* Agent name */}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '12px',
+      padding: '6px 12px', background: 'rgba(255,255,255,0.03)',
+      border: '1px solid var(--color-border)', borderRadius: '16px',
+      fontSize: '0.75rem', fontWeight: 500
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: cfg.color }}>
+        {status !== 'Complete' && (
+          <motion.div
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}
+          />
+        )}
+        <span className="font-mono" style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}>{cfg.label}</span>
+      </div>
       {agent && (
-        <span style={{ color: 'var(--color-text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>
-          {agent}
-        </span>
+        <>
+          <div style={{ width: '1px', height: '12px', background: 'var(--color-border)' }} />
+          <span className="font-mono" style={{ color: 'var(--color-text-muted)' }}>
+            {agent.replace('Agent', '')}
+          </span>
+        </>
       )}
     </div>
   );

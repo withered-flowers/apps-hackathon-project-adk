@@ -1,16 +1,12 @@
 import { useMemo } from 'react';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 
-/**
- * DecisionMatrix — renders the comparison table from the Evaluator agent.
- *
- * @param {{ options: Array, criteria: Array }} matrix
- */
 export default function DecisionMatrix({ matrix }) {
-  const options = matrix?.options ?? [];
+  const options = useMemo(() => matrix?.options ?? [], [matrix]);
   const criteria = matrix?.criteria ?? [];
   const criteriaNames = criteria.map(c => c.name || c);
 
-  // Highest score for highlighting — must be called before any early return
   const maxScore = useMemo(
     () => Math.max(0, ...options.map(o => o.weighted_score ?? 0)),
     [options]
@@ -18,127 +14,76 @@ export default function DecisionMatrix({ matrix }) {
 
   if (!matrix || !options.length) return null;
 
-  const scoreClass = (score) => {
-    if (score >= 8) return 'score-high';
-    if (score >= 5) return 'score-mid';
-    return 'score-low';
-  };
-
   return (
-    <div
-      className="glass-card animate-fade-in"
-      style={{ padding: '20px', overflow: 'hidden' }}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="glass-card glass-refraction"
+      style={{ padding: '32px', overflow: 'hidden' }}
     >
-      {/* Header */}
-      <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '1.2rem' }}>📊</span>
-        <h3
-          style={{
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          Decision Matrix
+      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 500, letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}>
+          Matrix Evaluation
         </h3>
       </div>
 
-      {/* Scrollable table wrapper */}
-      <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
+      <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid var(--color-border)', background: 'rgba(0,0,0,0.2)' }}>
         <table className="matrix-table">
-          <thead>
+          <thead style={{ background: 'rgba(255,255,255,0.02)'}}>
             <tr>
-              <th style={{ minWidth: '160px' }}>Option</th>
+              <th style={{ minWidth: '180px' }}>Subject Target</th>
               {criteriaNames.map(name => (
                 <th key={name}>{name}</th>
               ))}
-              <th style={{ textAlign: 'center' }}>Total</th>
-              <th>Rec.</th>
+              <th style={{ textAlign: 'center' }}>Total Rank</th>
+              <th>Reference</th>
             </tr>
           </thead>
           <tbody>
             {options.map((opt, idx) => {
               const isTop = opt.weighted_score === maxScore;
               return (
-                <tr key={idx}>
-                  {/* Option name */}
+                <tr key={idx} style={{ background: isTop ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       {isTop && (
-                        <span
-                          style={{
-                            fontSize: '0.75rem',
-                            background: 'rgba(72,187,120,0.15)',
-                            color: '#48bb78',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontWeight: 700,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          ⭐ TOP
-                        </span>
+                        <div style={{ width: '4px', height: '16px', background: 'var(--color-accent)', borderRadius: '2px' }} />
                       )}
-                      <span
-                        style={{
-                          color: isTop ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                          fontWeight: isTop ? 600 : 400,
-                          fontSize: '0.85rem',
-                        }}
-                      >
+                      <span style={{ color: isTop ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', fontWeight: isTop ? 500 : 400, fontSize: '0.9rem' }}>
                         {opt.title}
                       </span>
                     </div>
                   </td>
-
-                  {/* Per-criterion scores */}
                   {criteriaNames.map(name => {
                     const score = opt.scores?.[name] ?? '—';
                     return (
-                      <td key={name} style={{ textAlign: 'center' }}>
+                      <td key={name}>
                         {typeof score === 'number' ? (
-                          <span className={`score-chip ${scoreClass(score)}`}>{score}</span>
+                          <span className="font-mono" style={{ fontSize: '0.8rem', color: isTop ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
+                            {score.toFixed(1)}
+                          </span>
                         ) : (
                           <span style={{ color: 'var(--color-text-muted)' }}>—</span>
                         )}
                       </td>
                     );
                   })}
-
-                  {/* Total score */}
-                  <td style={{ textAlign: 'center', fontWeight: 700 }}>
-                    <span
-                      style={{
-                        color: isTop ? 'var(--color-green)' : 'var(--color-text-secondary)',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {typeof opt.weighted_score === 'number'
-                        ? opt.weighted_score.toFixed(1)
-                        : '—'}
+                  <td style={{ textAlign: 'center' }}>
+                    <span className="font-mono" style={{ color: isTop ? 'var(--color-accent)' : 'var(--color-text-primary)', fontSize: '0.9rem', fontWeight: 500 }}>
+                      {typeof opt.weighted_score === 'number' ? opt.weighted_score.toFixed(2) : '—'}
                     </span>
                   </td>
-
-                  {/* Source link */}
                   <td>
                     {opt.url ? (
                       <a
                         href={opt.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{
-                          color: 'var(--color-accent)',
-                          fontSize: '0.78rem',
-                          textDecoration: 'none',
-                        }}
-                        onMouseEnter={e => (e.target.style.textDecoration = 'underline')}
-                        onMouseLeave={e => (e.target.style.textDecoration = 'none')}
+                        style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
                       >
-                        View ↗
+                        [Ext Link]
                       </a>
-                    ) : (
-                      <span style={{ color: 'var(--color-text-muted)' }}>—</span>
-                    )}
+                    ) : <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
                   </td>
                 </tr>
               );
@@ -147,64 +92,33 @@ export default function DecisionMatrix({ matrix }) {
         </table>
       </div>
 
-      {/* Pros/Cons detail */}
       {options.length > 0 && (
-        <div
-          style={{
-            marginTop: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: '12px',
-          }}
-        >
+        <div style={{ marginTop: '32px', display: 'grid', gridTemplateColumns: '1fr', gap: '1px', background: 'var(--color-border)', border: '1px solid var(--color-border)' }}>
           {options.slice(0, 3).map((opt, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '10px',
-                padding: '12px',
-              }}
-            >
-              <p
-                style={{
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  color: 'var(--color-text-primary)',
-                  marginBottom: '8px',
-                }}
-              >
-                {opt.title}
-              </p>
-              {opt.pros?.length > 0 && (
-                <ul style={{ listStyle: 'none', marginBottom: '6px' }}>
+            <div key={idx} style={{ background: 'var(--color-bg-card)', padding: '20px', display: 'grid', gridTemplateColumns: 'minmax(150px, 1fr) 2fr 2fr', gap: '20px', alignItems: 'start' }}>
+              <div style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--color-text-primary)' }}>{opt.title}</div>
+              {opt.pros?.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {opt.pros.slice(0, 2).map((p, i) => (
-                    <li
-                      key={i}
-                      style={{ fontSize: '0.76rem', color: '#48bb78', marginBottom: '2px' }}
-                    >
-                      ✓ {p}
+                    <li key={i} style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', display: 'flex', gap: '8px', lineHeight: 1.4 }}>
+                      <span style={{ color: 'var(--color-accent)' }}>+</span> {p}
                     </li>
                   ))}
                 </ul>
-              )}
-              {opt.cons?.length > 0 && (
-                <ul style={{ listStyle: 'none' }}>
-                  {opt.cons.slice(0, 1).map((c, i) => (
-                    <li
-                      key={i}
-                      style={{ fontSize: '0.76rem', color: '#fc8181', marginBottom: '2px' }}
-                    >
-                      ✗ {c}
+              ) : <div/>}
+              {opt.cons?.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {opt.cons.slice(0, 2).map((c, i) => (
+                    <li key={i} style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '8px', lineHeight: 1.4 }}>
+                      <span>-</span> {c}
                     </li>
                   ))}
                 </ul>
-              )}
+              ) : <div/>}
             </div>
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
