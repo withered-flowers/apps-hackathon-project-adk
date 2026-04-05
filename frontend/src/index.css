@@ -104,6 +104,24 @@ html, body, #root {
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .app-main.has-matrix {
+    grid-template-columns: minmax(400px, 1fr) 1.5fr;
+  }
+}
+
 .glass-refraction {
   position: relative;
 }

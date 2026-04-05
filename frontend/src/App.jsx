@@ -148,21 +148,15 @@ export default function App() {
 				</div>
 			</header>
 
-			<main
-				style={{
-					flex: 1,
-					display: "grid",
-					gridTemplateColumns: hasMatrix ? "minmax(400px, 1fr) 1fr" : "1fr",
-					gap: "1px",
-					background: "var(--color-border)",
-				}}
-			>
+			<main className={`app-main ${hasMatrix ? "has-matrix" : ""}`}>
 				<div
 					style={{
 						background: "var(--color-bg-primary)",
 						display: "flex",
 						flexDirection: "column",
 						overflow: "hidden",
+						minHeight: 0,
+						flex: 1,
 					}}
 				>
 					{error && (
@@ -196,6 +190,8 @@ export default function App() {
 								display: "flex",
 								flexDirection: "column",
 								gap: "24px",
+								minHeight: 0,
+								flex: 1,
 							}}
 						>
 							<DecisionMatrix matrix={matrix} />
