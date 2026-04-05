@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./index.css";
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,9 +8,13 @@ import ChatInterface from "./components/ChatInterface";
 import DecisionMatrix from "./components/DecisionMatrix";
 import ExportButton from "./components/ExportButton";
 import { ErrorBanner } from "./components/LoadingSpinner";
+import ThemeToggle from "./components/ThemeToggle";
 import { newSession, sendMessage } from "./services/api";
 
 export default function App() {
+	const [theme, setTheme] = useState(
+		() => localStorage.getItem("theme") || "dark",
+	);
 	const [sessionId, setSessionId] = useState("");
 	const [messages, setMessages] = useState([]);
 	const [loading, setLoading] = useState(false);
@@ -18,6 +22,17 @@ export default function App() {
 	const [agent, setAgent] = useState("");
 	const [matrix, setMatrix] = useState(null);
 	const [error, setError] = useState("");
+
+	useEffect(() => {
+		localStorage.setItem("theme", theme);
+		if (theme === "dark") {
+			document.documentElement.classList.add("dark");
+			document.documentElement.classList.remove("light");
+		} else {
+			document.documentElement.classList.add("light");
+			document.documentElement.classList.remove("dark");
+		}
+	}, [theme]);
 
 	const ensureSession = useCallback(async () => {
 		if (sessionId) return sessionId;
@@ -71,6 +86,8 @@ export default function App() {
 		setError("");
 	};
 
+	const toggleTheme = () =>
+		setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 	const hasMatrix = matrix?.options?.length > 0;
 
 	return (
@@ -93,7 +110,7 @@ export default function App() {
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "space-between",
-					background: "rgba(9, 9, 11, 0.8)",
+					background: "var(--header-bg)",
 					backdropFilter: "blur(20px)",
 					borderBottom: "1px solid var(--color-border)",
 				}}
@@ -117,6 +134,7 @@ export default function App() {
 					</h1>
 				</div>
 				<div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+					<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
 					<AgentStatusBadge agent={agent} status={status} />
 					<button
 						type="button"

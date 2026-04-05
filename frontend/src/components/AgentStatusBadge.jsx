@@ -16,7 +16,7 @@ export default function AgentStatusBadge({ agent, status }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '12px',
-      padding: '6px 12px', background: 'rgba(255,255,255,0.03)',
+      padding: '6px 12px', background: 'var(--status-bg)',
       border: '1px solid var(--color-border)', borderRadius: '16px',
       fontSize: '0.75rem', fontWeight: 500
     }}>

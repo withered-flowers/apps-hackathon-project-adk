@@ -89,9 +89,9 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 								lineHeight: 1.1,
 							}}
 						>
-							Formulate
+							Got a tough
 							<br />
-							Objective.
+							decision?
 						</h2>
 						<p
 							style={{
@@ -100,8 +100,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 								lineHeight: 1.6,
 							}}
 						>
-							Define the parameters of your decision. The advisory network will
-							compute options and extract qualitative matrices.
+							Tell us what you're trying to figure out. Our AI agents will do the heavy lifting, weigh your options, and give you a clear comparison to help you choose.
 						</p>
 
 						<div
@@ -130,7 +129,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 										textAlign: "left",
 										padding: "12px 16px",
 										fontSize: "0.82rem",
-										borderColor: "rgba(255,255,255,0.05)",
+										borderColor: "var(--matrix-border)",
 									}}
 									onClick={() => {
 										setInput(sugg);
@@ -175,7 +174,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 						onChange={(e) => setInput(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder={
-							disabled ? "Advisory session complete." : "Input parameters..."
+							disabled ? "Advisory session complete." : "Ask your question..."
 						}
 						disabled={disabled || loading}
 						rows={1}
@@ -205,7 +204,7 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 						style={{
 							position: "absolute",
 							right: "12px",
-							top: "50%",
+							top: "45%",
 							transform: "translateY(-50%)",
 							background: "var(--color-text-primary)",
 							color: "var(--color-bg-primary)",

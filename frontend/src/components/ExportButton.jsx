@@ -29,7 +29,7 @@ export default function ExportButton({ sessionId }) {
 					alignItems: "center",
 					gap: "12px",
 					padding: "12px 16px",
-					background: "rgba(255,255,255,0.02)",
+					background: "var(--status-bg)",
 					border: "1px solid var(--color-border)",
 					borderRadius: "8px",
 					fontSize: "0.85rem",
