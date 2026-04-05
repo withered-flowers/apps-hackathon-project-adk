@@ -22,8 +22,8 @@ export default function ChatInterface({ messages, loading, onSend, disabled }) {
 	}, [messages, loading]);
 
 	useEffect(() => {
-		if (!disabled) inputRef.current?.focus();
-	}, [disabled]);
+		if (!disabled && !loading) inputRef.current?.focus();
+	}, [disabled, loading]);
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

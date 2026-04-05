@@ -154,7 +154,7 @@ export default function App() {
 						background: "var(--color-bg-primary)",
 						display: "flex",
 						flexDirection: "column",
-						overflow: "hidden",
+						overflowY: "auto",
 						minHeight: 0,
 						flex: 1,
 					}}

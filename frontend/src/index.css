@@ -110,6 +110,8 @@ html, body, #root {
   flex-direction: column;
   gap: 1px;
   background: var(--color-border);
+  overflow: hidden;
+  min-height: 0;
 }
 
 @media (min-width: 768px) {
@@ -119,6 +121,11 @@ html, body, #root {
   }
   .app-main.has-matrix {
     grid-template-columns: minmax(400px, 1fr) 1.5fr;
+    grid-template-rows: 1fr;
+  }
+  .app-main.has-matrix > * {
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
