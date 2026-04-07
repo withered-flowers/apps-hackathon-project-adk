@@ -1,20 +1,43 @@
 .venv
+venv/
 
 .env
 .env.local
 .env.*.local
+.env.production
+.env.*.production
 
-node_modules
-dist
-build
-coverage
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+uv.lock.bak
 
-*.log
+# Node
+node_modules/
+dist/
+build/
+coverage/
 *.tsbuildinfo
-.idea
-.vscode
-.DS_Store
 
+# Logs
+*.log
+
+# Editor
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Security / certs
 *.pem
 *.key
 *.crt
@@ -23,9 +46,15 @@ coverage
 *.csr
 *.jks
 *.p12
+
+# Temp
 *.bak
 *.tmp
 *.swp
+
+# SQLite (temp decision matrices)
+*.sqlite
+*.db
 
 # ignore ADK specific files
 .adk
