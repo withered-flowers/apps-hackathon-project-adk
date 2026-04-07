@@ -18,8 +18,8 @@ from app.services.decision_service import (
     process_message,
     process_message_stream,
 )
-from app.services.report_service import export_report
 from app.services.markdown_service import generate_markdown_download
+from app.services.report_service import export_report
 
 logger = get_logger("api.routes")
 
@@ -97,7 +97,7 @@ async def new_session() -> dict[str, str]:
 async def recent_sessions() -> RecentSessionsResponse:
     """List the 5 most recent sessions."""
     sessions = await list_recent_sessions(limit=5)
-    return RecentSessionsResponse(sessions=sessions)
+    return RecentSessionsResponse(sessions=sessions)  # pyright: ignore[reportArgumentType]
 
 
 @router.post("/export/{session_id}", tags=["Export"])

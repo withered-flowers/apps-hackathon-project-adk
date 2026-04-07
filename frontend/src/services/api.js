@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -98,7 +100,7 @@ export async function getRecentSessions() {
  * @returns {Promise<void>}
  */
 export async function downloadMarkdownReport(sessionId) {
-  const res = await fetch(`/api/export/${sessionId}/download`);
+  const res = await fetch(`${API_BASE}/export/${sessionId}/download`);
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }

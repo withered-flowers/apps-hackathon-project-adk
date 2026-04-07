@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/apps-hackathon-project-adk',
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
@@ -20,5 +21,5 @@ export default defineConfig({
         },
       },
     },
-  },
+  }
 })
