@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./index.css";
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from "framer-motion";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 import AgentStatusBadge from "./components/AgentStatusBadge";
 import ChatInterface from "./components/ChatInterface";
@@ -169,6 +170,30 @@ export default function App() {
 				</div>
 				<div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
 					<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+					<a
+						href="https://github.com/withered-flowers/apps-hackathon-project-adk"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="btn-secondary"
+						style={{
+							width: "36px",
+							height: "36px",
+							borderRadius: "50%",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							background: "var(--color-bg-card)",
+							border: "1px solid var(--color-border)",
+							color: "var(--color-text-secondary)",
+							cursor: "pointer",
+							textDecoration: "none",
+						}}
+						aria-label="GitHub"
+          >
+            <div>
+              <GitHubLogoIcon width={16} height={16} />
+            </div>
+					</a>
 					<AgentStatusBadge agent={agent} status={status} />
 					<button
 						type="button"
