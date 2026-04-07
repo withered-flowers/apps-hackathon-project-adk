@@ -4,6 +4,18 @@
 
 Decidely.ai helps you make confident decisions through a structured AI-guided process — from clarifying your criteria to researching and ranking your options.
 
+## Disclaimer
+
+Decidely.ai entire infrastructure is optimized to stay within a **$5/month budget** using only free-tier resources. This means:
+
+- **Cloud SQL is not used** — it has no free tier and would exceed the budget. The decision matrix uses an in-memory SQLite MCP server instead.
+- **Cloud Run scales to zero** when idle to avoid baseline compute costs.
+- **Firestore Native mode** is used for session storage (generous free tier: 1 GB storage, 50k reads/day).
+- **Vertex AI** is used for Gemini models with careful token management to stay within free-tier limits.
+- **GitHub Pages** hosts the frontend at zero cost.
+
+Some production best practices (CI/CD pipelines, monitoring, persistent databases) are simplified or omitted to fit the hackathon timeline and budget constraints.
+
 ## Architecture
 
 ```mermaid
