@@ -6,7 +6,7 @@ Decidely.ai helps you make confident decisions through a structured AI-guided pr
 
 ## Deployment Link
 
-- Backend: [Here](https://decidely-ai-backend-42922152355.us-central1.run.app)
+- Backend(Cloud Run): [Here](https://decidely-ai-backend-42922152355.us-central1.run.app)
 - Frontend(Github Pages): [Here](https://withered-flowers.github.io/apps-hackathon-genai-apac/)
 - Frontend(Cloud Storage): [Here](https://storage.googleapis.com/apps-hackathon-project-adk/index.html)
 
