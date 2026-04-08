@@ -22,6 +22,93 @@ Decidely.ai entire infrastructure is optimized to stay within a **$5/month budge
 
 Some production best practices (CI/CD pipelines, monitoring, persistent databases) are simplified or omitted to fit the hackathon timeline and budget constraints.
 
+## Use Case Diagram
+
+```mermaid
+flowchart LR
+    %% Styling
+    classDef actor fill:#f3f4f6,stroke:#94a3b8,stroke-width:2px,color:#0f172a
+    classDef usecase fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,rx:20px,ry:20px,color:#312e81
+    classDef boundary fill:#ffffff,stroke:#cbd5e1,stroke-width:2px,stroke-dasharray: 5 5
+
+    %% Actor
+    User((👤 <br/>End User)):::actor
+
+    %% System Boundary
+    subgraph System [Decidely.ai Platform]
+        direction TB
+        UC1([💬 Submit a Decision Dilemma]):::usecase
+        UC2([🗣️ Answer Clarifying Questions]):::usecase
+        UC3([👀 Monitor Live AI Swarm Status]):::usecase
+        UC4([📊 Review Scored Decision Matrix]):::usecase
+        UC5([📥 Download Markdown Report]):::usecase
+        UC6([🕒 View Past Sessions]):::usecase
+    end
+    class System boundary
+
+    %% Interactions
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
+
+    %% Optional dependency flow
+    UC1 -.->|Triggers| UC3
+    UC4 -.->|Enables| UC5
+```
+
+## Mock UI Layout Diagram
+
+```mermaid
+flowchart TB
+    %% Styling based on index.css themes
+    classDef header fill:#fcfcf9,stroke:#e4e4e7,stroke-width:1px,color:#18181b,rx:8px,ry:8px
+    classDef panel fill:#ffffff,stroke:#e4e4e7,stroke-width:1px,rx:12px,ry:12px
+    classDef chatUser fill:#f1f0eb,stroke:#e4e4e7,color:#18181b,rx:15px,ry:15px
+    classDef chatAI fill:#ffffff,stroke-width:0px,border-left:2px solid #e4e4e7,color:#52525b,rx:0px,ry:0px
+    classDef status fill:#f4f4f0,stroke:#e4e4e7,stroke-dasharray: 4 4,color:#a1a1aa,rx:8px,ry:8px
+    classDef nobg fill:none,stroke:none
+
+    %% Top Navigation Bar (Spanning full width)
+    Nav["<b>🧠 Decidely.ai</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🌗 &nbsp; 🐙 &nbsp; 🔄 EVALUATING | Evaluator &nbsp; [ New Session ]"]:::header
+
+    subgraph DesktopPane ["🖥️ Widescreen Desktop Layout"]
+        direction LR
+
+        %% Left Column (Chat Pane - 400px/1fr)
+        subgraph LeftCol ["💬 Chat Interface (Left Column)"]
+            direction TB
+            M1["<b>User</b><br/>Which laptop for a CS degree under $1200?"]:::chatUser
+            M2["<b>INTERVIEWER</b><br/>I can help! Do you prefer MacOS or Windows?"]:::chatAI
+            M3["<b>User</b><br/>MacOS, mostly for coding."]:::chatUser
+            M4["<i>Evaluating is crunching numbers...</i>"]:::status
+            Input["Ask your question... &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⬆️"]:::panel
+
+            M1 ~~~ M2 ~~~ M3 ~~~ M4 ~~~ Input
+        end
+
+        %% Right Column (Matrix Pane - 1.5fr)
+        subgraph RightCol ["📊 Decision Dashboard (Right Column)"]
+            direction TB
+            Title["<b>Matrix Evaluation</b>"]:::nobg
+
+            Table["<b>Subject Target &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; Price &nbsp;|&nbsp; Battery &nbsp;|&nbsp; Total Rank &nbsp;|&nbsp; Reference</b><br/>-----------------------------------------------------------------------------------------------------------------<br/><b>▌MacBook Air M2</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; 8.5 &nbsp;&nbsp;&nbsp;|&nbsp; 9.0 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; <b>8.75</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; [ ↗ ]<br/>MacBook Air M3 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; 7.0 &nbsp;&nbsp;&nbsp;|&nbsp; 9.2 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; 8.10 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp; [ ↗ ]"]:::panel
+
+            Breakdown["<b>MacBook Air M2</b><br/><span style='color:#10b981'>+ Great value for students</span><br/><span style='color:#10b981'>+ Excellent battery life</span><br/><span style='color:#a1a1aa'>- Older generation chip</span>"]:::panel
+
+            DocLifecycle["<b>Documentation Lifecycle</b><br/><br/>[ 📥 Download Report as Markdown ]"]:::panel
+
+            Title ~~~ Table ~~~ Breakdown ~~~ DocLifecycle
+        end
+
+        LeftCol ~~~ RightCol
+    end
+
+    Nav --- DesktopPane
+```
+
 ## Architecture
 
 ```mermaid
@@ -43,8 +130,8 @@ graph TD
     PA --> SA["<b>🎉 Supporter Agent<br/>Final Recommendation</b>"]
     EA -.->|"<b>read/write</b>"| MCP[("<b>🗃️ SQLite MCP<br/>Decision Matrix</b>")]
     BE -->|"<b>persist</b>"| FS[("<b>📦 Firestore<br/>Session Storage</b>")]
-    BE -->|"<b>export</b>"| DM["<b>📄 Google Drive MCP<br/>Report Export</b>"]
     BE -->|"<b>download</b>"| MG["<b>📥 Markdown Generator MCP<br/>Report Download</b>"]
+    BE -->|"<b>export</b>"| DM["<b>UNIMPLEMENTED<br/>📄 Google Drive MCP<br/>Report Export</b>"]
 
     class User userNode
     class FE frontendNode
