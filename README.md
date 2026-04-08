@@ -4,6 +4,12 @@
 
 Decidely.ai helps you make confident decisions through a structured AI-guided process — from clarifying your criteria to researching and ranking your options.
 
+## Deployment Link
+
+- Backend: [Here](https://decidely-ai-backend-42922152355.us-central1.run.app)
+- Frontend(Github Pages): [Here](https://withered-flowers.github.io/apps-hackathon-genai-apac/)
+- Frontend(Cloud Storage): [Here](https://storage.googleapis.com/apps-hackathon-project-adk/index.html)
+
 ## Disclaimer
 
 Decidely.ai entire infrastructure is optimized to stay within a **$5/month budget** using only free-tier resources. This means:
@@ -55,11 +61,11 @@ graph TD
 |-------|-----------|
 | Backend | Python 3.11+, Google ADK, FastAPI, uv |
 | Frontend | React 19, Vite 8, Tailwind CSS, Bun |
-| AI Agents | Gemini 2.0 Flash via Google ADK |
+| AI Agents | Gemini 3.1 Flash Lite (Preview) via Google ADK (Vertex) |
 | Storage | Google Cloud Firestore |
 | Decision Matrix | SQLite via MCP |
-| Report Export | Google Drive via MCP, Markdown Generator MCP |
-| Deployment | Cloud Run (backend), GitHub Pages (frontend) |
+| Report Export | Google Drive via MCP (Further Implementation), Markdown Generator MCP |
+| Deployment | Cloud Run (backend), GitHub Pages (frontend), Cloud Storage (frontend) |
 
 ## Prerequisites
 
@@ -68,7 +74,7 @@ graph TD
 - Google Cloud Project with Firestore and Vertex AI API enabled
 - `gcloud auth application-default login`
 
-## Quick Start
+## Quick Start (Development)
 
 ### Backend
 
@@ -126,8 +132,6 @@ frontend/
 │   ├── services/        # API client (axios)
 │   └── App.jsx          # Root application
 └── package.json
-
-specs/001-decidely-ai-core/  # Design artifacts
 ```
 
 ## API Endpoints
