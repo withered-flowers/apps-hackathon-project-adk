@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: User description: "Modify the existing apps: (1) Current backend and frontend currently is only for one user with shared all decision. Modify this into multi user and share this into multi user, with each of the user have its decision protected - one user can only see their decision only. (2) See the current for more info."
 
+## Clarifications
+
+### Session 2026-04-26
+- Q: What happens to decisions made during a Guest session if that user creates a permanent account? → A: Keep separate (start the permanent account with a fresh slate).
+- Q: How should new Guest users interact with the legacy data assigned to the Guest profile? → A: Shared Pool (All Guest users share access to the legacy decisions).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Secure User Authentication and Session Management (Priority: P1)
@@ -53,7 +59,8 @@ Users must be able to create new decisions and view only the decisions they have
 - **FR-003**: System MUST filter all decision-listing queries to return only records belonging to the currently authenticated user.
 - **FR-004**: System MUST enforce authorization checks on all single-decision retrieval, update, and deletion operations to ensure the requesting user owns the decision.
 - **FR-005**: System MUST authenticate users via an authentication provider supporting Email/Password, third-party OAuth, and Guest (anonymous) logins.
-- **FR-006**: System MUST handle existing legacy data by assigning ownership of all pre-existing decisions to a designated 'Guest' user profile.
+- **FR-006**: System MUST handle existing legacy data by assigning ownership of all pre-existing decisions to a shared 'Guest' user profile, meaning all users logging in as a Guest will share access to these legacy decisions.
+- **FR-007**: System MUST NOT migrate Guest session data when a user creates a permanent account (permanent accounts start with a fresh slate).
 
 ### Key Entities
 
@@ -73,5 +80,5 @@ Users must be able to create new decisions and view only the decisions they have
 
 - The frontend application has or will be updated with a login interface to support the authentication requirement.
 - User registration/provisioning flow is either out of scope for this specific task or will use a standard self-serve registration model.
-- There are no "shared" decisions or "admin" roles needed for this specific release; strictly 1-to-1 isolation between a user and their decisions.
+- There are no "shared" decisions or "admin" roles needed for permanent accounts; strictly 1-to-1 isolation between a permanent user and their decisions (Guest accounts will act as a shared pool).
 - Firebase Authentication will be utilized as the technical identity provider to fulfill the authentication requirements.
