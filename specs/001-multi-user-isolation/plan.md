@@ -1,7 +1,7 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Multi-User Isolation
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-multi-user-isolation` | **Date**: 2026-04-26 | **Spec**: [link]
+**Input**: Feature specification from `/specs/001-multi-user-isolation/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
@@ -50,7 +50,7 @@ backend/
 │   ├── core/
 │   │   └── auth.py      # New: Firebase auth dependency
 │   ├── models/
-│   │   └── entities.py  # Updated: DecisionSession (user_id)
+│   │   └── entities.py  # Updated: Decision (user_id)
 │   └── services/
 │       └── decision_service.py # Updated: Session filtering
 └── tests/

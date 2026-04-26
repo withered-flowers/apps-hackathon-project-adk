@@ -34,7 +34,7 @@ description: "Task list for Multi-User Isolation"
 
 - [ ] T006 Implement Firebase Admin initialization and token verification logic in `backend/app/core/auth.py`
 - [ ] T007 Implement Firebase JS SDK initialization and AuthProvider context in `frontend/src/context/AuthContext.jsx`
-- [ ] T008 Update `backend/app/models/entities.py` to add `user_id` to `DecisionSession` defaulting to `"anonymous"`
+- [ ] T008 Update `backend/app/models/entities.py` to add `user_id` to `Decision` defaulting to `"anonymous"`
 - [ ] T009 Update `backend/app/core/firestore.py` to support `user_id` filtering in `get_session` and `list_sessions`
 
 **Checkpoint**: Firebase auth is configured on both sides and database queries support the new schema.
@@ -67,9 +67,12 @@ description: "Task list for Multi-User Isolation"
 
 - [ ] T013 [US2] Update `/api/chat` and `/api/chat/stream` in `backend/app/api/routes.py` to inject the authenticated `user_id` (or `"anonymous"`) when creating or updating a session.
 - [ ] T014 [US2] Update `process_message` and `process_message_stream` in `backend/app/services/decision_service.py` to pass the `user_id` down to `save_session`.
-- [ ] T015 [US2] Update `/api/history/{session_id}`, `/api/export/{session_id}`, and `/api/export/{session_id}/download` in `backend/app/api/routes.py` to verify ownership before returning data (return 403 if `user_id` mismatch).
+- [ ] T014a [US2] Implement check in `backend/app/services/decision_service.py` to enforce the 50-decision limit per user during creation.
+- [ ] T015 [US2] Update `/api/history/{session_id}`, `/api/export/{session_id}`, and `/api/export/{session_id}/download` in `backend/app/api/routes.py` to verify ownership before returning data (return 404 if `user_id` mismatch).
 - [ ] T016 [US2] Update `/api/sessions/recent` in `backend/app/api/routes.py` to pass the current `user_id` to `list_recent_sessions`.
 - [ ] T017 [US2] Update `list_recent_sessions` in `backend/app/services/decision_service.py` to accept and pass the `user_id` to Firestore.
+- [ ] T017a [US2] Create backend unit tests verifying: (a) 50-limit enforcement, (b) Stealth 404 on ownership mismatch, (c) Guest shared pool access.
+- [ ] T017b [US1] Create frontend integration tests for AuthContext verifying Email/Password, OAuth, and Guest login state persistence.
 
 **Checkpoint**: At this point, the backend enforces strict isolation based on the token provided by the frontend.
 
@@ -82,6 +85,7 @@ description: "Task list for Multi-User Isolation"
 - [ ] T018 Verify no regressions in existing unit/integration tests (`pytest` and frontend tests).
 - [ ] T019 Update frontend UI to show the current logged-in user's email or "Guest" status in the header.
 - [ ] T020 Add a "Logout" button to the frontend header.
+- [ ] T021 [P] Perform security audit verification: Manually attempt to access User A's session ID as User B and confirm 100% 404 response rate.
 
 ---
 
