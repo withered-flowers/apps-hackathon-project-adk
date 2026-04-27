@@ -33,9 +33,9 @@ description: "Task list for Shared Guest Account feature implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Update `verify_id_token` in `backend/app/core/auth.py` to inspect `decoded.get("firebase", {}).get("sign_in_provider")` and return `"anonymous"` if it is `"anonymous"`.
-- [ ] T002 [P] [US1] Update `check_user_decision_limit` in `backend/app/services/decision_service.py` to explicitly bypass the 50-decision limit for the `"anonymous"` user ID.
-- [ ] T003 [P] [US1] Verify and update `frontend/src/context/AuthContext.jsx` to ensure guest state operates cleanly with the backend changes if necessary.
+- [x] T001 [P] [US1] Update `verify_id_token` in `backend/app/core/auth.py` to inspect `decoded.get("firebase", {}).get("sign_in_provider")` and return `"anonymous"` if it is `"anonymous"`.
+- [x] T002 [P] [US1] Update `check_user_decision_limit` in `backend/app/services/decision_service.py` to explicitly bypass the 50-decision limit for the `"anonymous"` user ID.
+- [x] T003 [P] [US1] Verify and update `frontend/src/context/AuthContext.jsx` to ensure guest state operates cleanly with the backend changes if necessary.
 
 **Checkpoint**: At this point, Guest users should share a single identity and have unlimited decisions.
 
@@ -49,8 +49,8 @@ description: "Task list for Shared Guest Account feature implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T004 [US2] Add unit test in `backend/tests/test_multi_user_isolation.py` verifying that permanent users are not mapped to `"anonymous"`, and their decision limits are still strictly enforced.
-- [ ] T005 [US2] Add unit test in `backend/tests/test_multi_user_isolation.py` verifying that anonymous users correctly map to `"anonymous"` and bypass the decision limit.
+- [x] T004 [US2] Add unit test in `backend/tests/test_multi_user_isolation.py` verifying that permanent users are not mapped to `"anonymous"`, and their decision limits are still strictly enforced.
+- [x] T005 [US2] Add unit test in `backend/tests/test_multi_user_isolation.py` verifying that anonymous users correctly map to `"anonymous"` and bypass the decision limit.
 
 **Checkpoint**: Isolation logic is fully tested and verified against regressions.
 
@@ -60,7 +60,7 @@ description: "Task list for Shared Guest Account feature implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T006 [P] Run `quickstart.md` manual validation to verify both the Shared Pool visibility and Decision Limit Exemption.
+- [x] T006 [P] Run `quickstart.md` manual validation to verify both the Shared Pool visibility and Decision Limit Exemption.
 
 ---
 

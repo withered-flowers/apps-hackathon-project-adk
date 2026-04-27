@@ -203,6 +203,40 @@ async def test_get_current_user_id_valid_token():
 
 
 @pytest.mark.asyncio
+async def test_get_current_user_id_anonymous_token_override():
+    """Valid Firebase token with anonymous provider should be overridden to 'anonymous'."""
+    mock_request = MagicMock()
+    mock_request.headers = {"Authorization": "Bearer valid_anon_token_123"}
+
+    with (
+        patch("app.core.auth._ensure_firebase_app"),
+        patch(
+            "app.core.auth.firebase_auth.verify_id_token",
+            return_value={"uid": "unique_anon_123", "firebase": {"sign_in_provider": "anonymous"}},
+        ),
+    ):
+        result = await get_current_user_id(mock_request)
+        assert result == "anonymous"
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_id_permanent_user_token():
+    """Valid Firebase token for a permanent user should NOT be overridden."""
+    mock_request = MagicMock()
+    mock_request.headers = {"Authorization": "Bearer valid_perm_token_123"}
+
+    with (
+        patch("app.core.auth._ensure_firebase_app"),
+        patch(
+            "app.core.auth.firebase_auth.verify_id_token",
+            return_value={"uid": "uid_alice", "firebase": {"sign_in_provider": "password"}},
+        ),
+    ):
+        result = await get_current_user_id(mock_request)
+        assert result == "uid_alice"
+
+
+@pytest.mark.asyncio
 async def test_get_current_user_id_expired_token():
     """Expired/invalid token should return 'anonymous' (not crash)."""
     mock_request = MagicMock()

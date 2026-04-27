@@ -66,7 +66,13 @@ async def get_current_user_id(request: Request) -> str:
     try:
         _ensure_firebase_app()
         decoded = firebase_auth.verify_id_token(token)
-        uid: str = decoded.get("uid", "anonymous")
+        
+        # Override UID for anonymous sessions to ensure they share the same data pool
+        if decoded.get("firebase", {}).get("sign_in_provider") == "anonymous":
+            uid = "anonymous"
+        else:
+            uid: str = decoded.get("uid", "anonymous")
+            
         logger.debug("Authenticated user uid=%s", uid)
         return uid
     except Exception as exc:  # noqa: BLE001

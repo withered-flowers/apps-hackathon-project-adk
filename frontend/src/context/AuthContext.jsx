@@ -90,10 +90,13 @@ export default function AuthProvider({ children }) {
 
   const logout = useCallback(() => signOut(auth), []);
 
+  const isGuest = user?.isAnonymous || false;
+
   const value = useMemo(
     () => ({
       user,
       loading,
+      isGuest,
       getToken,
       loginWithEmail,
       signupWithEmail,
@@ -104,6 +107,7 @@ export default function AuthProvider({ children }) {
     [
       user,
       loading,
+      isGuest,
       getToken,
       loginWithEmail,
       signupWithEmail,
