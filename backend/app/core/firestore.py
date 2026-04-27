@@ -50,17 +50,20 @@ async def save_session(session_data: dict[str, Any]) -> None:
     logger.info("Session saved: session_id=%s status=%s", session_id, data.get("status"))
 
 
-async def list_sessions(limit: int = 5) -> list[dict[str, Any]]:
-    """List the most recent sessions ordered by last_message_at descending."""
+async def list_sessions(limit: int = 5, user_id: str = "anonymous") -> list[dict[str, Any]]:
+    """List the most recent sessions ordered by last_message_at descending.
+
+    When *user_id* is provided the results are filtered to only include
+    sessions owned by that user.  Legacy sessions without a ``user_id``
+    field are treated as belonging to the ``"anonymous"`` pool.
+    """
     db = get_firestore()
-    snapshot = (
-        db.collection("sessions")
-        .order_by("last_message_at", direction=firestore.Query.DESCENDING)
-        .limit(limit)
-        .stream()
-    )
+    query = db.collection("sessions").where("user_id", "==", user_id)
+    query = query.order_by("last_message_at", direction=firestore.Query.DESCENDING)
+    query = query.limit(limit)
+
     results = []
-    async for doc in snapshot:
+    async for doc in query.stream():
         data = doc.to_dict()
         if data is None:
             continue
@@ -75,6 +78,19 @@ async def list_sessions(limit: int = 5) -> list[dict[str, Any]]:
             }
         )
     return results
+
+
+async def count_user_sessions(user_id: str) -> int:
+    """Count the number of sessions owned by *user_id*.
+
+    Used to enforce the 50-decision limit per permanent user.
+    """
+    db = get_firestore()
+    query = db.collection("sessions").where("user_id", "==", user_id)
+    results = []
+    async for doc in query.stream():
+        results.append(doc)
+    return len(results)
 
 
 def _prepare_for_firestore(data: Any) -> Any:

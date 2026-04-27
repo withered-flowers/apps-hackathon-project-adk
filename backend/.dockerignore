@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.venv/
+venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.bak
+
+# Logs
+*.log
+
+# Tests
+tests/

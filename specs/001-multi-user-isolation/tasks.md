@@ -20,11 +20,11 @@ description: "Task list for Multi-User Isolation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Add `firebase-admin` dependency to `backend/pyproject.toml`
-- [ ] T002 Add `firebase` dependency to `frontend/package.json`
-- [ ] T003 [P] Create `backend/app/core/auth.py` placeholder
-- [ ] T004 [P] Create `frontend/src/context/AuthContext.jsx` placeholder
-- [ ] T005 [P] Create `frontend/src/components/Login.jsx` placeholder
+- [X] T001 Add `firebase-admin` dependency to `backend/pyproject.toml`
+- [X] T002 Add `firebase` dependency to `frontend/package.json`
+- [X] T003 [P] Create `backend/app/core/auth.py` placeholder
+- [X] T004 [P] Create `frontend/src/context/AuthContext.jsx` placeholder
+- [X] T005 [P] Create `frontend/src/components/Login.jsx` placeholder
 
 ---
 
@@ -32,10 +32,10 @@ description: "Task list for Multi-User Isolation"
 
 **Purpose**: Core authentication infrastructure that MUST be complete before user stories can be fully implemented.
 
-- [ ] T006 Implement Firebase Admin initialization and token verification logic in `backend/app/core/auth.py`
-- [ ] T007 Implement Firebase JS SDK initialization and AuthProvider context in `frontend/src/context/AuthContext.jsx`
-- [ ] T008 Update `backend/app/models/entities.py` to add `user_id` to `Decision` defaulting to `"anonymous"`
-- [ ] T009 Update `backend/app/core/firestore.py` to support `user_id` filtering in `get_session` and `list_sessions`
+- [X] T006 Implement Firebase Admin initialization and token verification logic in `backend/app/core/auth.py`
+- [X] T007 Implement Firebase JS SDK initialization and AuthProvider context in `frontend/src/context/AuthContext.jsx`
+- [X] T008 Update `backend/app/models/entities.py` to add `user_id` to `Decision` defaulting to `"anonymous"`
+- [X] T009 Update `backend/app/core/firestore.py` to support `user_id` filtering in `get_session` and `list_sessions`
 
 **Checkpoint**: Firebase auth is configured on both sides and database queries support the new schema.
 
@@ -49,9 +49,9 @@ description: "Task list for Multi-User Isolation"
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement `frontend/src/components/Login.jsx` UI supporting Email/Password, Google OAuth, and Guest logins using Firebase Auth.
-- [ ] T011 [US1] Update `frontend/src/App.jsx` (or routing layer) to conditionally render the Login screen if unauthenticated, or the main dashboard if authenticated.
-- [ ] T012 [US1] Update Axios interceptors in `frontend/src/services/` to automatically attach the `Authorization: Bearer <token>` header if a user is logged in.
+- [X] T010 [US1] Implement `frontend/src/components/Login.jsx` UI supporting Email/Password, Google OAuth, and Guest logins using Firebase Auth.
+- [X] T011 [US1] Update `frontend/src/App.jsx` (or routing layer) to conditionally render the Login screen if unauthenticated, or the main dashboard if authenticated.
+- [X] T012 [US1] Update Axios interceptors in `frontend/src/services/` to automatically attach the `Authorization: Bearer <token>` header if a user is logged in.
 
 **Checkpoint**: Users can log in/out on the frontend and the backend receives the token.
 
@@ -65,14 +65,14 @@ description: "Task list for Multi-User Isolation"
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Update `/api/chat` and `/api/chat/stream` in `backend/app/api/routes.py` to inject the authenticated `user_id` (or `"anonymous"`) when creating or updating a session.
-- [ ] T014 [US2] Update `process_message` and `process_message_stream` in `backend/app/services/decision_service.py` to pass the `user_id` down to `save_session`.
-- [ ] T014a [US2] Implement check in `backend/app/services/decision_service.py` to enforce the 50-decision limit per user during creation.
-- [ ] T015 [US2] Update `/api/history/{session_id}`, `/api/export/{session_id}`, and `/api/export/{session_id}/download` in `backend/app/api/routes.py` to verify ownership before returning data (return 404 if `user_id` mismatch).
-- [ ] T016 [US2] Update `/api/sessions/recent` in `backend/app/api/routes.py` to pass the current `user_id` to `list_recent_sessions`.
-- [ ] T017 [US2] Update `list_recent_sessions` in `backend/app/services/decision_service.py` to accept and pass the `user_id` to Firestore.
-- [ ] T017a [US2] Create backend unit tests verifying: (a) 50-limit enforcement, (b) Stealth 404 on ownership mismatch, (c) Guest shared pool access.
-- [ ] T017b [US1] Create frontend integration tests for AuthContext verifying Email/Password, OAuth, and Guest login state persistence.
+- [X] T013 [US2] Update `/api/chat` and `/api/chat/stream` in `backend/app/api/routes.py` to inject the authenticated `user_id` (or `"anonymous"`) when creating or updating a session.
+- [X] T014 [US2] Update `process_message` and `process_message_stream` in `backend/app/services/decision_service.py` to pass the `user_id` down to `save_session`.
+- [X] T014a [US2] Implement check in `backend/app/services/decision_service.py` to enforce the 50-decision limit per user during creation.
+- [X] T015 [US2] Update `/api/history/{session_id}`, `/api/export/{session_id}`, and `/api/export/{session_id}/download` in `backend/app/api/routes.py` to verify ownership before returning data (return 404 if `user_id` mismatch).
+- [X] T016 [US2] Update `/api/sessions/recent` in `backend/app/api/routes.py` to pass the current `user_id` to `list_recent_sessions`.
+- [X] T017 [US2] Update `list_recent_sessions` in `backend/app/services/decision_service.py` to accept and pass the `user_id` to Firestore.
+- [X] T017a [US2] Create backend unit tests verifying: (a) 50-limit enforcement, (b) Stealth 404 on ownership mismatch, (c) Guest shared pool access.
+- [X] T017b [US1] Create frontend integration tests for AuthContext verifying Email/Password, OAuth, and Guest login state persistence.
 
 **Checkpoint**: At this point, the backend enforces strict isolation based on the token provided by the frontend.
 
@@ -82,10 +82,10 @@ description: "Task list for Multi-User Isolation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T018 Verify no regressions in existing unit/integration tests (`pytest` and frontend tests).
-- [ ] T019 Update frontend UI to show the current logged-in user's email or "Guest" status in the header.
-- [ ] T020 Add a "Logout" button to the frontend header.
-- [ ] T021 [P] Perform security audit verification: Manually attempt to access User A's session ID as User B and confirm 100% 404 response rate.
+- [X] T018 Verify no regressions in existing unit/integration tests (`pytest` and frontend tests).
+- [X] T019 Update frontend UI to show the current logged-in user's email or "Guest" status in the header.
+- [X] T020 Add a "Logout" button to the frontend header.
+- [X] T021 [P] Perform security audit verification: Manually attempt to access User A's session ID as User B and confirm 100% 404 response rate.
 
 ---
 

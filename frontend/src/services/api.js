@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
@@ -10,6 +11,44 @@ const api = axios.create({
   timeout: 60000, // 60s — agent calls can be slow
 });
 
+// ── Auth interceptor ──────────────────────────────────────────────────────────
+// Automatically attach the Firebase ID token to every outgoing request
+// when a user is logged in.
+
+api.interceptors.request.use(async (config) => {
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch {
+    // Silently continue without token — backend treats as anonymous
+  }
+  return config;
+});
+
+/**
+ * Helper to get the current Authorization header for non-axios requests (e.g. XHR, fetch).
+ * @returns {Promise<string|null>}
+ */
+async function getAuthHeader() {
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      return token ? `Bearer ${token}` : null;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 /**
  * Send a chat message and receive real-time SSE status updates.
  * @param {string} sessionId
@@ -19,10 +58,15 @@ const api = axios.create({
  * @returns {Promise<{session_id, agent, response, status, matrix}>}
  */
 export async function sendMessage(sessionId, message, onStatus, onProgress) {
+  const authHeader = await getAuthHeader();
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}/chat/stream`);
     xhr.setRequestHeader("Content-Type", "application/json");
+    if (authHeader) {
+      xhr.setRequestHeader("Authorization", authHeader);
+    }
     xhr.timeout = 120000;
 
     let buffer = "";
@@ -100,7 +144,13 @@ export async function getRecentSessions() {
  * @returns {Promise<void>}
  */
 export async function downloadMarkdownReport(sessionId) {
-  const res = await fetch(`${API_BASE}/export/${sessionId}/download`);
+  const headers = {};
+  const authHeader = await getAuthHeader();
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
+  }
+
+  const res = await fetch(`${API_BASE}/export/${sessionId}/download`, { headers });
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }

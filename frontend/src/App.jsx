@@ -9,11 +9,15 @@ import ChatInterface from "./components/ChatInterface";
 import DecisionMatrix from "./components/DecisionMatrix";
 import ExportButton from "./components/ExportButton";
 import { ErrorBanner } from "./components/LoadingSpinner";
+import Login from "./components/Login";
 import SessionList from "./components/SessionList";
 import ThemeToggle from "./components/ThemeToggle";
+import { useAuth } from "./context/AuthContext";
 import { newSession, sendMessage } from "./services/api";
 
 export default function App() {
+	const { user, loading: authLoading, logout } = useAuth();
+
 	const [theme, setTheme] = useState(
 		() => localStorage.getItem("theme") || "dark",
 	);
@@ -124,6 +128,35 @@ export default function App() {
 		setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 	const hasMatrix = matrix?.options?.length > 0;
 
+	// ── Auth Loading ──
+	if (authLoading) {
+		return (
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					minHeight: "100dvh",
+					background: "var(--color-bg-primary)",
+					color: "var(--color-text-muted)",
+					fontSize: "0.85rem",
+				}}
+			>
+				Loading...
+			</div>
+		);
+	}
+
+	// ── Not Authenticated → Show Login ──
+	if (!user) {
+		return <Login />;
+	}
+
+	// ── Derive display name ──
+	const displayName = user.isAnonymous
+		? "Guest"
+		: user.email || "User";
+
 	return (
 		<div
 			style={{
@@ -168,7 +201,22 @@ export default function App() {
 						Decidely
 					</h1>
 				</div>
-				<div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+				<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+					{/* ── User info ── */}
+					<span
+						id="header-user-display"
+						style={{
+							fontSize: "0.75rem",
+							color: "var(--color-text-muted)",
+							maxWidth: "140px",
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+						}}
+					>
+						{displayName}
+					</span>
+
 					<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
 					<a
 						href="https://github.com/withered-flowers/apps-hackathon-project-adk"
@@ -202,6 +250,21 @@ export default function App() {
 						style={{ padding: "8px 16px", fontSize: "0.8rem" }}
 					>
 						New Session
+					</button>
+
+					{/* ── Logout button ── */}
+					<button
+						id="header-logout"
+						type="button"
+						className="btn-secondary"
+						onClick={logout}
+						style={{
+							padding: "8px 16px",
+							fontSize: "0.8rem",
+							color: "var(--color-text-muted)",
+						}}
+					>
+						Sign Out
 					</button>
 				</div>
 			</header>

@@ -15,7 +15,7 @@ from typing import Any
 
 from app.agents.primary import DecisionPipeline, get_pipeline
 from app.core.errors import SessionNotFoundError
-from app.core.firestore import get_session, save_session
+from app.core.firestore import count_user_sessions, get_session, save_session
 from app.core.firestore import list_sessions as _list_sessions
 from app.core.logging import get_logger
 from app.mcp import sqlite_client
@@ -23,6 +23,9 @@ from app.models.entities import DecisionSession, Message
 from app.models.schemas import ChatResponse, HistoryResponse, MatrixData, MessageEntry
 
 logger = get_logger("services.decision")
+
+# Maximum number of decisions a permanent (non-anonymous) user can create
+MAX_DECISIONS_PER_USER = 50
 
 
 def _extract_json(text: str) -> dict | None:
@@ -48,7 +51,26 @@ def _extract_json(text: str) -> dict | None:
     return None
 
 
-async def process_message(session_id: str, user_message: str) -> ChatResponse:
+async def _enforce_decision_limit(user_id: str) -> None:
+    """Raise an error if the user has reached their decision limit.
+
+    Anonymous/guest users are exempt from the limit.
+    """
+    if user_id == "anonymous":
+        return
+    count = await count_user_sessions(user_id)
+    if count >= MAX_DECISIONS_PER_USER:
+        raise ValueError(
+            f"You have reached the maximum of {MAX_DECISIONS_PER_USER} decisions. "
+            "Please delete older sessions before creating new ones."
+        )
+
+
+async def process_message(
+    session_id: str,
+    user_message: str,
+    user_id: str = "anonymous",
+) -> ChatResponse:
     """
     Process a user message through the multi-agent pipeline.
 
@@ -64,11 +86,14 @@ async def process_message(session_id: str, user_message: str) -> ChatResponse:
         session = DecisionSession(**existing)
         logger.info("Loaded session=%s status=%s", session_id, session.status)
     else:
-        session = DecisionSession(session_id=session_id)
+        # Enforce per-user decision limit before creating
+        await _enforce_decision_limit(user_id)
+
+        session = DecisionSession(session_id=session_id, user_id=user_id)
         # Store the topic from the first user message
         session_dict: dict[str, Any] = session.model_dump()
         session_dict["topic"] = user_message
-        logger.info("Created new session=%s", session_id)
+        logger.info("Created new session=%s user_id=%s", session_id, user_id)
         session_dict_for_pipeline = session_dict
         session_dict_for_pipeline.pop("transcript", None)
         await save_session(session_dict_for_pipeline)
@@ -224,7 +249,11 @@ async def _save_and_build_response(
     }
 
 
-async def process_message_stream(session_id: str, user_message: str) -> AsyncGenerator[str]:
+async def process_message_stream(
+    session_id: str,
+    user_message: str,
+    user_id: str = "anonymous",
+) -> AsyncGenerator[str]:
     """
     Process a user message and stream real-time agent status updates via SSE.
 
@@ -236,7 +265,10 @@ async def process_message_stream(session_id: str, user_message: str) -> AsyncGen
     if existing:
         session = DecisionSession(**existing)
     else:
-        session = DecisionSession(session_id=session_id)
+        # Enforce per-user decision limit before creating
+        await _enforce_decision_limit(user_id)
+
+        session = DecisionSession(session_id=session_id, user_id=user_id)
         session_dict: dict[str, Any] = session.model_dump()
         session_dict["topic"] = user_message
         await save_session(session_dict)
@@ -444,9 +476,11 @@ def generate_session_id() -> str:
     return str(uuid.uuid4())
 
 
-async def list_recent_sessions(limit: int = 5) -> list[dict[str, Any]]:
+async def list_recent_sessions(
+    limit: int = 5, user_id: str = "anonymous"
+) -> list[dict[str, Any]]:
     """Return the most recent sessions with summary info matching RecentSessionSummary."""
-    raw = await _list_sessions(limit)
+    raw = await _list_sessions(limit, user_id=user_id)
     results = []
     for s in raw:
         ts = s.get("last_message_at")

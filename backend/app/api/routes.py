@@ -1,9 +1,11 @@
 """API route handlers for Decidely.ai — chat, history, and export endpoints."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response, StreamingResponse
 
+from app.core.auth import get_current_user_id
 from app.core.errors import SessionNotFoundError
+from app.core.firestore import get_session
 from app.core.logging import get_logger
 from app.models.schemas import (
     ChatRequest,
@@ -26,8 +28,33 @@ logger = get_logger("api.routes")
 router = APIRouter()
 
 
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+
+async def _verify_session_ownership(session_id: str, user_id: str) -> dict | None:
+    """Fetch a session and verify that the requester owns it.
+
+    Returns the session dict on success, raises 404 if not found or
+    if the ``user_id`` does not match (stealth 404 per security spec).
+    """
+    data = await get_session(session_id)
+    if not data:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+    session_owner = data.get("user_id", "anonymous")
+    if session_owner != user_id:
+        # Stealth 404 — do not reveal that the session exists to a different user
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+    return data
+
+
+# ── Routes ─────────────────────────────────────────────────────────────────────
+
+
 @router.post("/chat", response_model=ChatResponse, tags=["Chat"])
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    user_id: str = Depends(get_current_user_id),
+) -> ChatResponse:
     """
     Process a user message and advance the decision pipeline.
 
@@ -38,14 +65,24 @@ async def chat(request: ChatRequest) -> ChatResponse:
     # Auto-generate session_id if not provided or empty
     session_id = request.session_id or generate_session_id()
 
-    logger.info("POST /api/chat session_id=%s message_len=%d", session_id, len(request.message))
+    logger.info(
+        "POST /api/chat session_id=%s user_id=%s message_len=%d",
+        session_id,
+        user_id,
+        len(request.message),
+    )
 
-    response = await process_message(session_id=session_id, user_message=request.message)
+    response = await process_message(
+        session_id=session_id, user_message=request.message, user_id=user_id
+    )
     return response
 
 
 @router.post("/chat/stream", tags=["Chat"])
-async def chat_stream(request: ChatRequest) -> StreamingResponse:
+async def chat_stream(
+    request: ChatRequest,
+    user_id: str = Depends(get_current_user_id),
+) -> StreamingResponse:
     """
     Process a user message and stream real-time agent status updates via SSE.
 
@@ -56,11 +93,14 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
     session_id = request.session_id or generate_session_id()
 
     logger.info(
-        "POST /api/chat/stream session_id=%s message_len=%d", session_id, len(request.message)
+        "POST /api/chat/stream session_id=%s user_id=%s message_len=%d",
+        session_id,
+        user_id,
+        len(request.message),
     )
 
     return StreamingResponse(
-        process_message_stream(session_id, request.message),
+        process_message_stream(session_id, request.message, user_id=user_id),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -71,13 +111,19 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
 
 
 @router.get("/history/{session_id}", response_model=HistoryResponse, tags=["Chat"])
-async def get_session_history(session_id: str) -> HistoryResponse:
+async def get_session_history(
+    session_id: str,
+    user_id: str = Depends(get_current_user_id),
+) -> HistoryResponse:
     """
     Retrieve the full conversation history and decision matrix for a session.
 
-    Returns 404 if the session doesn't exist.
+    Returns 404 if the session doesn't exist or belongs to a different user.
     """
-    logger.info("GET /api/history/%s", session_id)
+    logger.info("GET /api/history/%s user_id=%s", session_id, user_id)
+
+    # Verify ownership before returning data
+    await _verify_session_ownership(session_id, user_id)
 
     try:
         history = await get_history(session_id)
@@ -94,21 +140,29 @@ async def new_session() -> dict[str, str]:
 
 
 @router.get("/sessions/recent", response_model=RecentSessionsResponse, tags=["Session"])
-async def recent_sessions() -> RecentSessionsResponse:
-    """List the 5 most recent sessions."""
-    sessions = await list_recent_sessions(limit=5)
+async def recent_sessions(
+    user_id: str = Depends(get_current_user_id),
+) -> RecentSessionsResponse:
+    """List the 5 most recent sessions for the current user."""
+    sessions = await list_recent_sessions(limit=5, user_id=user_id)
     return RecentSessionsResponse(sessions=sessions)  # pyright: ignore[reportArgumentType]
 
 
 @router.post("/export/{session_id}", tags=["Export"])
-async def export_session_report(session_id: str) -> dict[str, str]:
+async def export_session_report(
+    session_id: str,
+    user_id: str = Depends(get_current_user_id),
+) -> dict[str, str]:
     """
     Export the completed decision report to Google Drive.
 
     Returns the Google Drive document URL.
     Raises 404 if session not found, 503 if Drive MCP unavailable.
     """
-    logger.info("POST /api/export/%s", session_id)
+    logger.info("POST /api/export/%s user_id=%s", session_id, user_id)
+
+    # Verify ownership
+    await _verify_session_ownership(session_id, user_id)
 
     try:
         url = await export_report(session_id)
@@ -122,14 +176,20 @@ async def export_session_report(session_id: str) -> dict[str, str]:
 
 
 @router.get("/export/{session_id}/download", tags=["Export"])
-async def download_markdown_report(session_id: str) -> Response:
+async def download_markdown_report(
+    session_id: str,
+    user_id: str = Depends(get_current_user_id),
+) -> Response:
     """
     Download the decision report as a markdown file.
 
     Returns a .md file with session summary, decision matrix, and SWOT analysis.
-    Raises 404 if session not found.
+    Raises 404 if session not found or belongs to different user.
     """
-    logger.info("GET /api/export/%s/download", session_id)
+    logger.info("GET /api/export/%s/download user_id=%s", session_id, user_id)
+
+    # Verify ownership
+    await _verify_session_ownership(session_id, user_id)
 
     try:
         filename, content = await generate_markdown_download(session_id)
