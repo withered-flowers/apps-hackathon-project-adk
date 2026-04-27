@@ -86,6 +86,8 @@ description: "Task list for Multi-User Isolation"
 - [X] T019 Update frontend UI to show the current logged-in user's email or "Guest" status in the header.
 - [X] T020 Add a "Logout" button to the frontend header.
 - [X] T021 [P] Perform security audit verification: Manually attempt to access User A's session ID as User B and confirm 100% 404 response rate.
+- [ ] T022 [P] Implement automated performance benchmarking to validate that decision creation remains within 10% of the 500ms baseline (SC-004).
+- [ ] T023 [P] Perform frontend load testing or profiling to verify that users can log in and view their dashboard in under 2 seconds (SC-002).
 
 ---
 
