@@ -32,5 +32,5 @@ Python 3.11+ (Backend), JavaScript/TypeScript (Frontend): Follow standard conven
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-specs/002-shared-guest-account/plan.md
+specs/003-003-adaptive-decision-modes/plan.md
 <!-- SPECKIT END -->
