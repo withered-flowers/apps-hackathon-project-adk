@@ -32,5 +32,6 @@ Python 3.11+ (Backend), JavaScript/TypeScript (Frontend): Follow standard conven
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-specs/003-003-adaptive-decision-modes/plan.md
+
+- **004-agent-markdown-rendering**: specs/004-agent-markdown-rendering/plan.md
 <!-- SPECKIT END -->
