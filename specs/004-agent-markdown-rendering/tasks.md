@@ -7,15 +7,15 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Install react-markdown dependency in frontend
+- [x] T001 Install react-markdown dependency in frontend
   - File: `frontend/package.json` (or run `cd frontend && npm install react-markdown`)
   - Dependency: `react-markdown@^9.0.0`
 
-- [ ] T002 [P] Install Vitest for frontend testing (required by constitution)
+- [x] T002 [P] Install Vitest for frontend testing (required by constitution)
   - File: `frontend/package.json`
   - Dependencies: `vitest@^2.0.0`, `@testing-library/react@^16.0.0`, `jsdom@^25.0.0`
 
-- [ ] T003 [P] Configure Vitest in frontend/vite.config.js
+- [x] T003 [P] Configure Vitest in frontend/vite.config.js
   - File: `frontend/vite.config.js`
   - Task: Add test configuration for Vitest
 
@@ -23,7 +23,7 @@
 
 ## Phase 2: Foundational
 
-- [ ] T004 [P] Verify ChatInterface.jsx MessageBubble component structure
+- [x] T004 [P] Verify ChatInterface.jsx MessageBubble component structure
   - File: `frontend/src/components/ChatInterface.jsx`
   - Task: Confirm MessageBubble function renders message.content and identify exact location for ReactMarkdown integration
 
@@ -41,19 +41,19 @@
 - Mixed formatting renders correctly
 - Plain text without formatting remains unchanged
 
-- [ ] T005 [P] [US1] Import ReactMarkdown in ChatInterface.jsx
+- [x] T005 [P] [US1] Import ReactMarkdown in ChatInterface.jsx
   - File: `frontend/src/components/ChatInterface.jsx`
   - Add: `import ReactMarkdown from 'react-markdown';`
 
-- [ ] T006 [P] [US1] Wrap message.content with ReactMarkdown in MessageBubble
+- [x] T006 [P] [US1] Wrap message.content with ReactMarkdown in MessageBubble
   - File: `frontend/src/components/ChatInterface.jsx`
   - Change: `{message.content}` → `<ReactMarkdown>{message.content}</ReactMarkdown>`
 
-- [ ] T007 [US1] Write unit test for ReactMarkdown rendering in MessageBubble
+- [x] T007 [US1] Write unit test for ReactMarkdown rendering in MessageBubble
   - File: `frontend/src/components/__tests__/ChatInterface.test.jsx`
   - Task: Test that `*italic*` renders as `<em>`, `**bold**` renders as `<strong>`, and plain text is unchanged
 
-- [ ] T008 [US1] Run frontend tests to verify markdown rendering
+- [x] T008 [US1] Run frontend tests to verify markdown rendering
   - Command: `cd frontend && npm run test -- --run`
   - Task: Execute Vitest tests and verify all pass
 
@@ -70,15 +70,15 @@
 - Recommendation section explicitly addresses the user's original question
 - All 4 sections present: Executive Summary, Full Option Comparison, Risk Analysis, Recommendation & Justification
 
-- [ ] T009 [P] [US2/US4] Update SUPPORTER_INSTRUCTION for strategic mode final decision
+- [x] T009 [P] [US2/US4] Update SUPPORTER_INSTRUCTION for strategic mode final decision
   - File: `backend/app/agents/supporter.py`
   - Task: Add to Executive Summary section: "**FINAL DECISION:** [Option Name]" prefix requirement
 
-- [ ] T010 [P] [US2/US4] Update SUPPORTER_INSTRUCTION to explain question alignment in Recommendation
+- [x] T010 [P] [US2/US4] Update SUPPORTER_INSTRUCTION to explain question alignment in Recommendation
   - File: `backend/app/agents/supporter.py`
   - Task: Add to Recommendation section: Must explain how chosen option addresses the original decision question
 
-- [ ] T011 [P] [US4] Verify strategic mode report structure completeness
+- [x] T011 [P] [US4] Verify strategic mode report structure completeness
   - File: `backend/app/agents/supporter.py`
   - Task: Confirm all 4 sections are required in prompt (Executive Summary, Full Option Comparison, Risk Analysis, Recommendation & Justification)
 
@@ -98,7 +98,7 @@
 - Acknowledges one trade-off
 - Ends with "Feel free to ask me anything else about your decision! 🎯"
 
-- [ ] T012 [P] [US3] Verify purchase mode instructions in SUPPORTER_INSTRUCTION
+- [x] T012 [P] [US3] Verify purchase mode instructions in SUPPORTER_INSTRUCTION
   - File: `backend/app/agents/supporter.py`
   - Task: Confirm purchase mode section includes all 5 required elements (celebrate, present, explain, acknowledge trade-off, encourage closing)
 
@@ -106,13 +106,13 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T013 Run frontend build to verify no compilation errors
+- [x] T013 Run frontend build to verify no compilation errors
   - Command: `cd frontend && npm run build`
 
-- [ ] T014 Run backend lint to verify Python code quality
+- [x] T014 Run backend lint to verify Python code quality
   - Command: `cd backend && ruff check app/agents/supporter.py`
 
-- [ ] T015 Run frontend tests to verify all tests pass
+- [x] T015 Run frontend tests to verify all tests pass
   - Command: `cd frontend && npm run test -- --run`
 
 ---
@@ -175,3 +175,4 @@ Phase 6 (Polish)
 | Test Tasks | 2 (T007, T008, T015) |
 | Parallelizable Tasks | 7 |
 | MVP Tasks | 8 |
+| **Completed** | **15/15** |

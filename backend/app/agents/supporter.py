@@ -9,6 +9,7 @@ Supports dual-mode behavior (T019):
   for Executive Summary, Full Option Comparison table, Risk Analysis, and
   Recommendation with detailed justification.
 """
+
 from __future__ import annotations
 
 from google.adk.agents import LlmAgent
@@ -47,6 +48,8 @@ MODE: strategic (Decision Type = strategic)
 Generate a structured, stakeholder-ready report using markdown headers:
 
 ## Executive Summary
+**FINAL DECISION:** [Recommended Option Name]
+
 2-3 sentences: decision context, recommended path, and key rationale.
 
 ## Full Option Comparison
@@ -60,6 +63,10 @@ For each option, briefly outline the top 1-2 risks. Use a bullet list per option
 Clear recommendation with detailed justification. Explain why this option
 outperforms the others on the most critical dimensions. Acknowledge trade-offs.
 Suggest concrete next steps.
+
+Your decision question was: "[original question]"
+This option was chosen because: [explain specifically how this option
+addresses your original decision question]
 
 Style: professional, analytical, yet encouraging. No excessive hedging.
 
