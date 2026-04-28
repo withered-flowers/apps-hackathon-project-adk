@@ -24,8 +24,8 @@
 
 **Purpose**: Extend data models and schemas with decision_type support. No new project init needed — this is an existing codebase.
 
-- [ ] T001 [P] Add `decision_type` and `decision_domain` fields to `DecisionSession` entity in backend/app/models/entities.py
-- [ ] T002 [P] Add `decision_type` field to `ChatResponse` and `HistoryResponse` schemas in backend/app/models/schemas.py
+- [x] T001 [P] Add `decision_type` and `decision_domain` fields to `DecisionSession` entity in backend/app/models/entities.py
+- [x] T002 [P] Add `decision_type` field to `ChatResponse` and `HistoryResponse` schemas in backend/app/models/schemas.py
 
 ---
 
@@ -35,11 +35,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add `_classify_decision` method to `DecisionPipeline` in backend/app/agents/primary.py — accepts user's first message, returns `{"decision_type": "purchase"|"strategic", "decision_domain": "finance"|"infrastructure"|"general"}` via a single LLM call using pure free-form reasoning
-- [ ] T004 Update `_run_interviewing` in backend/app/agents/primary.py to call `_classify_decision` on first message (when session has no `decision_type` yet), store result in `session_data["decision_type"]` and `session_data["decision_domain"]`
-- [ ] T005 Update `process_message` in backend/app/services/decision_service.py to persist `decision_type` and `decision_domain` from pipeline results to Firestore session document and include `decision_type` in the `ChatResponse` return value
-- [ ] T006 Update `process_message_stream` in backend/app/services/decision_service.py to persist `decision_type` and `decision_domain` from pipeline results and include `decision_type` in SSE `done` event payload
-- [ ] T007 Update `get_history` in backend/app/services/decision_service.py to include `decision_type` in `HistoryResponse`
+- [x] T003 Add `_classify_decision` method to `DecisionPipeline` in backend/app/agents/primary.py — accepts user's first message, returns `{"decision_type": "purchase"|"strategic", "decision_domain": "finance"|"infrastructure"|"general"}` via a single LLM call using pure free-form reasoning
+- [x] T004 Update `_run_interviewing` in backend/app/agents/primary.py to call `_classify_decision` on first message (when session has no `decision_type` yet), store result in `session_data["decision_type"]` and `session_data["decision_domain"]`
+- [x] T005 Update `process_message` in backend/app/services/decision_service.py to persist `decision_type` and `decision_domain` from pipeline results to Firestore session document and include `decision_type` in the `ChatResponse` return value
+- [x] T006 Update `process_message_stream` in backend/app/services/decision_service.py to persist `decision_type` and `decision_domain` from pipeline results and include `decision_type` in SSE `done` event payload
+- [x] T007 Update `get_history` in backend/app/services/decision_service.py to include `decision_type` in `HistoryResponse`
 
 **Checkpoint**: Foundation ready — classification works, decision_type flows through pipeline and persists. All agents still use current (purchase-mode) behavior.
 
@@ -53,11 +53,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Update `INTERVIEWER_INSTRUCTION` in backend/app/agents/interviewer.py to accept `decision_type` context in the prompt and use the existing 3-criteria flow when `decision_type=purchase` (preserving current behavior exactly)
-- [ ] T009 [US1] Update research prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing "find top 3-5 best options" instruction for purchase mode
-- [ ] T010 [US1] Update evaluation prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing Budget/Use-Case/Preferences weighted scoring for purchase mode
-- [ ] T011 [US1] Update support prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing concise 3-4 paragraph warm summary for purchase mode
-- [ ] T012 [US1] Add `asyncio.wait_for` timeout wrapping (30 seconds) around the purchase-mode pipeline execution in `_run_full_pipeline` of backend/app/agents/primary.py with graceful error message on timeout
+- [x] T008 [US1] Update `INTERVIEWER_INSTRUCTION` in backend/app/agents/interviewer.py to accept `decision_type` context in the prompt and use the existing 3-criteria flow when `decision_type=purchase` (preserving current behavior exactly)
+- [x] T009 [US1] Update research prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing "find top 3-5 best options" instruction for purchase mode
+- [x] T010 [US1] Update evaluation prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing Budget/Use-Case/Preferences weighted scoring for purchase mode
+- [x] T011 [US1] Update support prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to include `decision_type=purchase` context and keep the existing concise 3-4 paragraph warm summary for purchase mode
+- [x] T012 [US1] Add `asyncio.wait_for` timeout wrapping (30 seconds) around the purchase-mode pipeline execution in `_run_full_pipeline` of backend/app/agents/primary.py with graceful error message on timeout
 
 **Checkpoint**: Purchase flow works identically to before, with classification now set to "purchase". This is the MVP — deploy/demo if ready.
 
@@ -71,16 +71,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Update `INTERVIEWER_INSTRUCTION` in backend/app/agents/interviewer.py to add the strategic-mode instruction branch — when `decision_type=strategic`: analyze the decision domain, dynamically generate 3-7 relevant criteria, surface them briefly upfront ("For this decision I'll explore: X, Y, Z. Let's start…"), then ask questions one at a time targeting each criterion
-- [ ] T014 [US2] Update the criteria-complete JSON schema in backend/app/agents/interviewer.py to support dynamic criteria with variable names, weights, and count (3-7) for strategic mode, while preserving the fixed 3-criteria schema for purchase mode
-- [ ] T015 [US2] Update `RESEARCHER_INSTRUCTION` in backend/app/agents/researcher.py to add the strategic-mode instruction branch — when `decision_type=strategic`: perform thorough multi-dimensional research covering cost analysis, vendor capabilities, ecosystem, migration complexity, risks, and ecosystem factors; search across multiple angles rather than just product matching
-- [ ] T016 [US2] Update research prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type=strategic` and `decision_domain` context to the Researcher, instructing multi-dimensional research
-- [ ] T017 [US2] Update `EVALUATOR_INSTRUCTION` in backend/app/agents/evaluator.py to add domain-specific evaluation matrices — when `decision_type=strategic` and `decision_domain=finance`: use ROI/NPV, Strategic Fit, Ease of Execution, Risk Mitigation; when `decision_domain=infrastructure`: use Technical Fit, Scalability, Vendor Lock-in, Compliance; when `decision_domain=general`: let the LLM adapt an appropriate domain-specific matrix
-- [ ] T018 [US2] Update evaluation prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type`, `decision_domain`, and dynamically-generated criteria to the Evaluator for strategic mode
-- [ ] T019 [US2] Update `SUPPORTER_INSTRUCTION` in backend/app/agents/supporter.py to add the strategic-mode instruction branch — when `decision_type=strategic`: generate a structured stakeholder-ready report with sections for Executive Summary, Full Option Comparison table, Risk Analysis, and Recommendation with detailed justification
-- [ ] T020 [US2] Update support prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type=strategic` context to the Supporter
-- [ ] T021 [US2] Update `asyncio.wait_for` timeout in `_run_full_pipeline` of backend/app/agents/primary.py to use 90-second timeout for strategic mode (vs 30 seconds for purchase)
-- [ ] T022 [US2] Update SSE progress event messages in `_run_full_pipeline` of backend/app/services/decision_service.py to be decision-type-aware (e.g., "Performing deep research across multiple dimensions…" for strategic vs "Searching for the best options…" for purchase)
+- [x] T013 [US2] Update `INTERVIEWER_INSTRUCTION` in backend/app/agents/interviewer.py to add the strategic-mode instruction branch — when `decision_type=strategic`: analyze the decision domain, dynamically generate 3-7 relevant criteria, surface them briefly upfront ("For this decision I'll explore: X, Y, Z. Let's start…"), then ask questions one at a time targeting each criterion
+- [x] T014 [US2] Update the criteria-complete JSON schema in backend/app/agents/interviewer.py to support dynamic criteria with variable names, weights, and count (3-7) for strategic mode, while preserving the fixed 3-criteria schema for purchase mode
+- [x] T015 [US2] Update `RESEARCHER_INSTRUCTION` in backend/app/agents/researcher.py to add the strategic-mode instruction branch — when `decision_type=strategic`: perform thorough multi-dimensional research covering cost analysis, vendor capabilities, ecosystem, migration complexity, risks, and ecosystem factors; search across multiple angles rather than just product matching
+- [x] T016 [US2] Update research prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type=strategic` and `decision_domain` context to the Researcher, instructing multi-dimensional research
+- [x] T017 [US2] Update `EVALUATOR_INSTRUCTION` in backend/app/agents/evaluator.py to add domain-specific evaluation matrices — when `decision_type=strategic` and `decision_domain=finance`: use ROI/NPV, Strategic Fit, Ease of Execution, Risk Mitigation; when `decision_domain=infrastructure`: use Technical Fit, Scalability, Vendor Lock-in, Compliance; when `decision_domain=general`: let the LLM adapt an appropriate domain-specific matrix
+- [x] T018 [US2] Update evaluation prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type`, `decision_domain`, and dynamically-generated criteria to the Evaluator for strategic mode
+- [x] T019 [US2] Update `SUPPORTER_INSTRUCTION` in backend/app/agents/supporter.py to add the strategic-mode instruction branch — when `decision_type=strategic`: generate a structured stakeholder-ready report with sections for Executive Summary, Full Option Comparison table, Risk Analysis, and Recommendation with detailed justification
+- [x] T020 [US2] Update support prompt construction in `_run_full_pipeline` of backend/app/agents/primary.py to pass `decision_type=strategic` context to the Supporter
+- [x] T021 [US2] Update `asyncio.wait_for` timeout in `_run_full_pipeline` of backend/app/agents/primary.py to use 90-second timeout for strategic mode (vs 30 seconds for purchase)
+- [x] T022 [US2] Update SSE progress event messages in `_run_full_pipeline` of backend/app/services/decision_service.py to be decision-type-aware (e.g., "Performing deep research across multiple dimensions…" for strategic vs "Searching for the best options…" for purchase)
 
 **Checkpoint**: Both purchase and strategic flows work end-to-end. Strategic decisions produce detailed stakeholder reports.
 
@@ -94,8 +94,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Refine the classification prompt in `_classify_decision` of backend/app/agents/primary.py to include guidance for ambiguous cases — add examples of borderline questions and instruct the LLM to consider organizational language, scale implications, and budget mentions as classification signals; ensure the LLM always returns a valid classification (never "unknown")
-- [ ] T024 [US3] Add validation in `_classify_decision` of backend/app/agents/primary.py to ensure the LLM response always produces a valid `decision_type` ("purchase" or "strategic") and `decision_domain` — fall back to `{"decision_type": "purchase", "decision_domain": "general"}` if parsing fails
+- [x] T023 [US3] Refine the classification prompt in `_classify_decision` of backend/app/agents/primary.py to include guidance for ambiguous cases — add examples of borderline questions and instruct the LLM to consider organizational language, scale implications, and budget mentions as classification signals; ensure the LLM always returns a valid classification (never "unknown")
+- [x] T024 [US3] Add validation in `_classify_decision` of backend/app/agents/primary.py to ensure the LLM response always produces a valid `decision_type` ("purchase" or "strategic") and `decision_domain` — fall back to `{"decision_type": "purchase", "decision_domain": "general"}` if parsing fails
 
 **Checkpoint**: All three user stories work independently. Ambiguous questions produce coherent end-to-end experiences.
 
@@ -105,9 +105,9 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T025 [P] Update inline docstrings and module-level docstrings in all modified agent files (backend/app/agents/interviewer.py, researcher.py, evaluator.py, supporter.py, primary.py) to document the dual-mode behavior
-- [ ] T026 [P] Update `_session_to_dict` and session loading in backend/app/services/decision_service.py to handle backward compatibility — existing Firestore sessions without `decision_type` must default to "purchase" without errors
-- [ ] T027 Run end-to-end manual validation per quickstart.md — test a purchase flow ("Which laptop should I buy for gaming under $1500?") and a strategic flow ("Should our company migrate from GCP to AWS?") to verify both complete successfully within their time budgets
+- [x] T025 [P] Update inline docstrings and module-level docstrings in all modified agent files (backend/app/agents/interviewer.py, researcher.py, evaluator.py, supporter.py, primary.py) to document the dual-mode behavior
+- [x] T026 [P] Update `_session_to_dict` and session loading in backend/app/services/decision_service.py to handle backward compatibility — existing Firestore sessions without `decision_type` must default to "purchase" without errors
+- [x] T027 Run end-to-end manual validation per quickstart.md — test a purchase flow ("Which laptop should I buy for gaming under $1500?") and a strategic flow ("Should our company migrate from GCP to AWS?") to verify both complete successfully within their time budgets
 
 ---
 

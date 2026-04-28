@@ -45,6 +45,8 @@ class DecisionSession(BaseModel):
     session_id: str
     user_id: str = "anonymous"
     status: str = "Interviewing"  # Interviewing | Researching | Evaluating | Complete
+    decision_type: str = "purchase"  # "purchase" | "strategic" — locked on first message
+    decision_domain: str = "general"  # "finance" | "infrastructure" | "general"
     last_message_at: datetime = Field(default_factory=datetime.utcnow)
     transcript: list[Message] = Field(default_factory=list)
     criteria: list[dict[str, Any]] = Field(default_factory=list)

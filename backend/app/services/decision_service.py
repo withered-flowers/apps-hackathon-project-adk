@@ -118,10 +118,12 @@ async def process_message(
         session_data=session_data,
     )
 
-    # Update session state
+    # T005: Update session state, including new decision fields
     session.status = new_status
     session.criteria = updated_data.get("criteria", session.criteria)
     session.options = updated_data.get("options", session.options)
+    session.decision_type = updated_data.get("decision_type", session.decision_type)
+    session.decision_domain = updated_data.get("decision_domain", session.decision_domain)
 
     # Append assistant response to transcript
     assistant_msg = Message(role="assistant", content=response_text, agent=agent_name)
@@ -172,6 +174,7 @@ async def process_message(
         agent=agent_name,
         response=response_text,
         status=new_status,
+        decision_type=session.decision_type,  # T005
         matrix=matrix,
     )
 
@@ -202,10 +205,12 @@ async def _save_and_build_response(
     new_status: str,
     updated_data: dict,
 ) -> dict:
-    """Persist session state and build the final response dict."""
+    # T006: Update session state, including new decision fields
     session.status = new_status
     session.criteria = updated_data.get("criteria", session.criteria)
     session.options = updated_data.get("options", session.options)
+    session.decision_type = updated_data.get("decision_type", session.decision_type)
+    session.decision_domain = updated_data.get("decision_domain", session.decision_domain)
 
     assistant_msg = Message(role="assistant", content=response_text, agent=agent_name)
     session.transcript.append(assistant_msg)
@@ -245,6 +250,7 @@ async def _save_and_build_response(
         "agent": agent_name,
         "response": response_text,
         "status": new_status,
+        "decision_type": session.decision_type,  # T006
         "matrix": {"options": matrix.options, "criteria": matrix.criteria},
     }
 
@@ -289,12 +295,25 @@ async def process_message_stream(
     events: list[str] = []
 
     if status == "Interviewing":
-        context = user_message
-        if criteria:
+        # T006/T022: inject decision context if already classified
+        decision_type = session_data.get("decision_type", "")
+        decision_domain = session_data.get("decision_domain", "general")
+        if criteria and decision_type:
             context = (
+                f"Decision Type: {decision_type}\n"
+                f"Decision Domain: {decision_domain}\n\n"
                 f"Existing criteria collected so far: {json.dumps(criteria)}\n\n"
                 f"User says: {user_message}"
             )
+        elif decision_type:
+            context = (
+                f"Decision Type: {decision_type}\n"
+                f"Decision Domain: {decision_domain}\n\n"
+                f"User says: {user_message}"
+            )
+        else:
+            # Not yet classified — pipeline._run_interviewing will classify
+            context = user_message
         response_text = await pipeline._call_agent(pipeline._interviewer, session_id, context)
         parsed = _extract_json(response_text)
         if parsed and parsed.get("criteria_complete"):
@@ -330,7 +349,11 @@ async def process_message_stream(
         recommendation = session_data.get("recommendation", "")
         matrix = session_data.get("matrix", {})
         topic = session_data.get("topic", "decision")
+        decision_type = session_data.get("decision_type", "purchase")
+        decision_domain = session_data.get("decision_domain", "general")
         prompt = (
+            f"Decision Type: {decision_type}\n"
+            f"Decision Domain: {decision_domain}\n"
             f"User's original decision question: {topic}\n"
             f"Criteria: {json.dumps(criteria)}\n"
             f"Top recommendation: {recommendation}\n"
@@ -369,16 +392,21 @@ async def _run_full_pipeline(
     Returns (updated_data, response_text, new_status, agent_name).
     """
     criteria = session_data.get("criteria", [])
-
-    events.append(
-        _progress_event(
-            "ResearcherAgent",
-            "Researching",
-            "Searching for the best options based on your criteria...",
-        )
-    )
+    decision_type = session_data.get("decision_type", "purchase")
+    decision_domain = session_data.get("decision_domain", "general")
     topic = session_data.get("topic", "the user's decision")
+
+    # T022: decision-type-aware SSE progress messages
+    research_msg = (
+        "Performing deep research across multiple dimensions..."
+        if decision_type == "strategic"
+        else "Searching for the best options based on your criteria..."
+    )
+    events.append(_progress_event("ResearcherAgent", "Researching", research_msg))
+
     research_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"Decision topic: {topic}\n"
         f"User criteria: {json.dumps(criteria)}\n\n"
         "Please research and find the top 3-5 best options."
@@ -410,6 +438,8 @@ async def _run_full_pipeline(
         )
     )
     eval_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"Criteria: {json.dumps(criteria)}\n"
         f"Options: {json.dumps(new_options)}\n\n"
         "Please score these options and produce the decision matrix."
@@ -432,6 +462,8 @@ async def _run_full_pipeline(
         )
     )
     support_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"User's original decision question: {topic}\n"
         f"Criteria: {json.dumps(criteria)}\n"
         f"Options found: {json.dumps(new_options)}\n"
@@ -466,6 +498,7 @@ async def get_history(session_id: str) -> HistoryResponse:
 
     return HistoryResponse(
         session_id=session_id,
+        decision_type=data.get("decision_type", "purchase"),  # T007: backward compat default
         messages=messages,
         matrix=matrix,
     )

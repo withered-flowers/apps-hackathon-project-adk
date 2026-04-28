@@ -39,6 +39,9 @@ class ChatResponse(BaseModel):
         ...,
         description="Session status: Interviewing | Researching | Evaluating | Complete",
     )
+    decision_type: str = Field(
+        default="purchase", description="Decision mode: purchase or strategic"
+    )
     matrix: MatrixData = Field(default_factory=MatrixData)
 
 
@@ -46,6 +49,9 @@ class HistoryResponse(BaseModel):
     """Full conversation history for a session."""
 
     session_id: str
+    decision_type: str = Field(
+        default="purchase", description="Decision mode: purchase or strategic"
+    )
     messages: list[MessageEntry] = Field(default_factory=list)
     matrix: MatrixData = Field(default_factory=MatrixData)
 
