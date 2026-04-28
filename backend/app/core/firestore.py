@@ -58,7 +58,7 @@ async def list_sessions(limit: int = 5, user_id: str = "anonymous") -> list[dict
     field are treated as belonging to the ``"anonymous"`` pool.
     """
     db = get_firestore()
-    query = db.collection("sessions").where("user_id", "==", user_id)
+    query = db.collection("sessions").where(filter=firestore.FieldFilter("user_id", "==", user_id))
     query = query.order_by("last_message_at", direction=firestore.Query.DESCENDING)
     query = query.limit(limit)
 
@@ -86,7 +86,7 @@ async def count_user_sessions(user_id: str) -> int:
     Used to enforce the 50-decision limit per permanent user.
     """
     db = get_firestore()
-    query = db.collection("sessions").where("user_id", "==", user_id)
+    query = db.collection("sessions").where(filter=firestore.FieldFilter("user_id", "==", user_id))
     results = []
     async for doc in query.stream():
         results.append(doc)

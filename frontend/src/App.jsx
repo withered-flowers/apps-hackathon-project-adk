@@ -308,7 +308,7 @@ export default function App() {
 					{messages.length === 0 && showSessions && (
 						<div
 							style={{
-								padding: "0 24px 16px",
+								padding: "16px 24px 16px",
 								display: "flex",
 								flexDirection: "column",
 								gap: "8px",
