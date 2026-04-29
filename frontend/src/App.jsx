@@ -37,6 +37,18 @@ export default function App() {
 		remaining: 3,
 		limit: 3,
 	});
+	const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	useEffect(() => {
+		const handleResize = () => {
+			const mobile = window.innerWidth < 1024;
+			setIsMobile(mobile);
+			if (!mobile) setIsMenuOpen(false);
+		};
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	useEffect(() => {
 		localStorage.setItem("theme", theme);
@@ -49,7 +61,7 @@ export default function App() {
 		}
 	}, [theme]);
 
-		useEffect(() => {
+	useEffect(() => {
 		if (!user) return;
 
 		async function fetchUserStatus() {
@@ -205,8 +217,8 @@ export default function App() {
 				style={{
 					position: "sticky",
 					top: 0,
-					zIndex: 50,
-					padding: "16px 32px",
+					zIndex: 100,
+					padding: isMobile ? "12px 20px" : "16px 32px",
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "space-between",
@@ -215,7 +227,13 @@ export default function App() {
 					borderBottom: "1px solid var(--color-border)",
 				}}
 			>
-				<div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+				<div
+					style={{
+						display: "flex",
+						alignItems: "center",
+						gap: isMobile ? "8px" : "16px",
+					}}
+				>
 					<div
 						style={{
 							width: "12px",
@@ -232,90 +250,292 @@ export default function App() {
 					>
 						Decidely
 					</h1>
+					{isMobile && <AgentStatusBadge agent={agent} status={status} />}
 				</div>
+
 				<div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-					{/* ── User info ── */}
-					<span
-						id="header-user-display"
-						style={{
-							fontSize: "0.75rem",
-							color: "var(--color-text-muted)",
-							maxWidth: "140px",
-							overflow: "hidden",
-							textOverflow: "ellipsis",
-							whiteSpace: "nowrap",
-						}}
-					>
-						{displayName}
-					</span>
+					{!isMobile && (
+						<>
+							<span
+								id="header-user-display"
+								style={{
+									fontSize: "0.75rem",
+									color: "var(--color-text-muted)",
+									maxWidth: "140px",
+									overflow: "hidden",
+									textOverflow: "ellipsis",
+									whiteSpace: "nowrap",
+								}}
+							>
+								{displayName}
+							</span>
 
-					<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-					<RateLimitBanner
-						tier={rateLimit.tier}
-						remaining={rateLimit.remaining}
-						limit={rateLimit.limit}
-					/>
-					<VoucherRedeem
-						isUpgraded={rateLimit.tier === "upgraded"}
-						onUpgrade={() =>
-							setRateLimit((prev) => ({
-								...prev,
-								tier: "upgraded",
-								remaining: 20,
-								limit: 20,
-							}))
-						}
-					/>
-					<a
-						href="https://github.com/withered-flowers/apps-hackathon-project-adk"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="btn-secondary"
-						style={{
-							width: "36px",
-							height: "36px",
-							borderRadius: "50%",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							background: "var(--color-bg-card)",
-							border: "1px solid var(--color-border)",
-							color: "var(--color-text-secondary)",
-							cursor: "pointer",
-							textDecoration: "none",
-						}}
-						aria-label="GitHub"
-					>
-						<div>
-							<GitHubLogoIcon width={16} height={16} />
-						</div>
-					</a>
-					<AgentStatusBadge agent={agent} status={status} />
-					<button
-						type="button"
-						className="btn-secondary"
-						onClick={handleNewDecision}
-						style={{ padding: "8px 16px", fontSize: "0.8rem" }}
-					>
-						New Session
-					</button>
+							<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+							<RateLimitBanner
+								tier={rateLimit.tier}
+								remaining={rateLimit.remaining}
+								limit={rateLimit.limit}
+								variant="compact"
+							/>
+							{!user.isAnonymous && (
+								<VoucherRedeem
+									isUpgraded={rateLimit.tier === "upgraded"}
+									onUpgrade={() =>
+										setRateLimit((prev) => ({
+											...prev,
+											tier: "upgraded",
+											remaining: 20,
+											limit: 20,
+										}))
+									}
+									variant="compact"
+								/>
+							)}
+							<a
+								href="https://github.com/withered-flowers/apps-hackathon-project-adk"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="btn-secondary"
+								style={{
+									width: "36px",
+									height: "36px",
+									borderRadius: "50%",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									background: "var(--color-bg-card)",
+									border: "1px solid var(--color-border)",
+									color: "var(--color-text-secondary)",
+									cursor: "pointer",
+									textDecoration: "none",
+								}}
+								aria-label="GitHub"
+							>
+								<div>
+									<GitHubLogoIcon width={16} height={16} />
+								</div>
+							</a>
+							<AgentStatusBadge agent={agent} status={status} />
+							<button
+								type="button"
+								className="btn-secondary"
+								onClick={handleNewDecision}
+								style={{ padding: "8px 16px", fontSize: "0.8rem" }}
+							>
+								New Session
+							</button>
 
-					{/* ── Logout button ── */}
-					<button
-						id="header-logout"
-						type="button"
-						className="btn-secondary"
-						onClick={logout}
-						style={{
-							padding: "8px 16px",
-							fontSize: "0.8rem",
-							color: "var(--color-text-muted)",
-						}}
-					>
-						Sign Out
-					</button>
+							<button
+								id="header-logout"
+								type="button"
+								className="btn-secondary"
+								onClick={logout}
+								style={{
+									padding: "8px 16px",
+									fontSize: "0.8rem",
+									color: "var(--color-text-muted)",
+								}}
+							>
+								Sign Out
+							</button>
+						</>
+					)}
+
+					{isMobile && (
+						<button
+							type="button"
+							onClick={() => setIsMenuOpen(!isMenuOpen)}
+							style={{
+								background: "transparent",
+								border: "none",
+								color: "var(--color-text-primary)",
+								cursor: "pointer",
+								padding: "8px",
+								display: "flex",
+								flexDirection: "column",
+								gap: "4px",
+								zIndex: 110,
+							}}
+						>
+							<div
+								style={{
+									width: "20px",
+									height: "2px",
+									background: "currentColor",
+									transition: "0.3s",
+									transform: isMenuOpen
+										? "rotate(45deg) translate(4px, 4px)"
+										: "",
+								}}
+							/>
+							<div
+								style={{
+									width: "20px",
+									height: "2px",
+									background: "currentColor",
+									opacity: isMenuOpen ? 0 : 1,
+									transition: "0.3s",
+								}}
+							/>
+							<div
+								style={{
+									width: "20px",
+									height: "2px",
+									background: "currentColor",
+									transition: "0.3s",
+									transform: isMenuOpen
+										? "rotate(-45deg) translate(4px, -4px)"
+										: "",
+								}}
+							/>
+						</button>
+					)}
 				</div>
 			</header>
+
+			<AnimatePresence>
+				{isMobile && isMenuOpen && (
+					<motion.div
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -20 }}
+						style={{
+							position: "fixed",
+							top: 0,
+							left: 0,
+							right: 0,
+							bottom: 0,
+							background: "var(--color-bg-primary)",
+							zIndex: 90,
+							padding: "80px 24px 24px",
+							display: "flex",
+							flexDirection: "column",
+							gap: "20px",
+							overflowY: "auto",
+						}}
+					>
+						<div
+							style={{
+								display: "flex",
+								justifyContent: "space-between",
+								alignItems: "center",
+								padding: "16px",
+								background: "var(--color-bg-secondary)",
+								borderRadius: "16px",
+								border: "1px solid var(--color-border)",
+							}}
+						>
+							<div
+								style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+							>
+								<span
+									style={{
+										fontSize: "0.65rem",
+										color: "var(--color-text-muted)",
+										textTransform: "uppercase",
+										fontWeight: 600,
+									}}
+								>
+									Active Account
+								</span>
+								<span style={{ fontSize: "1rem", fontWeight: 600 }}>
+									{displayName}
+								</span>
+							</div>
+							<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+						</div>
+
+						<div
+							className="glass-card"
+							style={{
+								padding: "20px",
+								display: "flex",
+								flexDirection: "column",
+								gap: "24px",
+								background: "var(--color-bg-primary)",
+								borderRadius: "20px",
+								border: "1px solid var(--color-border)",
+							}}
+						>
+							<RateLimitBanner
+								tier={rateLimit.tier}
+								remaining={rateLimit.remaining}
+								limit={rateLimit.limit}
+							/>
+
+							{rateLimit.tier !== "upgraded" && !user.isAnonymous && (
+								<div
+									style={{
+										paddingTop: "20px",
+										borderTop: "1px solid var(--color-border)",
+									}}
+								>
+									<VoucherRedeem
+										isUpgraded={rateLimit.tier === "upgraded"}
+										onUpgrade={() => {
+											setRateLimit((prev) => ({
+												...prev,
+												tier: "upgraded",
+												remaining: 20,
+												limit: 20,
+											}));
+										}}
+									/>
+								</div>
+							)}
+						</div>
+
+						<div
+							style={{
+								marginTop: "auto",
+								display: "flex",
+								flexDirection: "column",
+								gap: "12px",
+							}}
+						>
+							<button
+								type="button"
+								className="btn-primary"
+								onClick={() => {
+									handleNewDecision();
+									setIsMenuOpen(false);
+								}}
+								style={{ padding: "16px", fontSize: "1rem" }}
+							>
+								New Session
+							</button>
+							<button
+								type="button"
+								className="btn-secondary"
+								onClick={() => {
+									logout();
+									setIsMenuOpen(false);
+								}}
+								style={{ padding: "16px", fontSize: "1rem" }}
+							>
+								Sign Out
+							</button>
+							<a
+								href="https://github.com/withered-flowers/apps-hackathon-project-adk"
+								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: "8px",
+									padding: "12px",
+									color: "var(--color-text-muted)",
+									textDecoration: "none",
+									fontSize: "0.85rem",
+								}}
+							>
+								<GitHubLogoIcon /> GitHub Repository
+							</a>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			<main className={`app-main ${hasMatrix ? "has-matrix" : ""}`}>
 				<div
