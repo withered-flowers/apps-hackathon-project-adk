@@ -34,4 +34,5 @@ For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
 
 - **004-agent-markdown-rendering**: specs/004-agent-markdown-rendering/plan.md
+- **005-rate-limit-pricing**: specs/005-rate-limit-pricing/plan.md
 <!-- SPECKIT END -->
