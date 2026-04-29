@@ -13,6 +13,7 @@ from app.models.schemas import (
     ChatResponse,
     HistoryResponse,
     RecentSessionsResponse,
+    UserStatusResponse,
     VoucherRedeemRequest,
     VoucherRedeemResponse,
 )
@@ -271,4 +272,20 @@ async def redeem_voucher(
         status="upgraded",
         new_limit="20 per hour",
         message="Rate limit upgraded successfully",
+    )
+
+
+@router.get("/user/status", response_model=UserStatusResponse, tags=["User"])
+async def get_user_status(
+    user_id: str = Depends(get_current_user_id),
+) -> UserStatusResponse:
+    """
+    Get the current user's subscription status.
+
+    Returns whether the user has upgraded rate limits and their current tier.
+    """
+    is_upgraded = voucher_service.is_user_upgraded(user_id)
+    return UserStatusResponse(
+        is_upgraded=is_upgraded,
+        rate_limit_tier="upgraded" if is_upgraded else "registered",
     )

@@ -1,22 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import "./index.css";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from "framer-motion";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 import AgentStatusBadge from "./components/AgentStatusBadge";
 import ChatInterface from "./components/ChatInterface";
 import DecisionMatrix from "./components/DecisionMatrix";
 import ExportButton from "./components/ExportButton";
-import { ErrorBanner } from "./components/LoadingSpinner";
 import LandingPage from "./components/LandingPage";
+import { ErrorBanner } from "./components/LoadingSpinner";
 import Login from "./components/Login";
 import RateLimitBanner from "./components/RateLimitBanner";
 import SessionList from "./components/SessionList";
 import ThemeToggle from "./components/ThemeToggle";
 import VoucherRedeem from "./components/VoucherRedeem";
 import { useAuth } from "./context/AuthContext";
-import { newSession, sendMessage } from "./services/api";
+import { getUserStatus, newSession, sendMessage } from "./services/api";
 
 export default function App() {
 	const { user, loading: authLoading, logout } = useAuth();
@@ -48,6 +48,28 @@ export default function App() {
 			document.documentElement.classList.remove("dark");
 		}
 	}, [theme]);
+
+	useEffect(() => {
+		if (!user) return;
+
+		async function fetchUserStatus() {
+			setRateLimit({ tier: "registered", remaining: 3, limit: 3 });
+			try {
+				const status = await getUserStatus();
+				if (status.is_upgraded) {
+					setRateLimit({
+						tier: "upgraded",
+						remaining: 20,
+						limit: 20,
+					});
+				}
+			} catch {
+				// Keep default registered tier on error
+			}
+		}
+
+		fetchUserStatus();
+	}, [user]);
 
 	const ensureSession = useCallback(async () => {
 		if (sessionId) return sessionId;
@@ -161,9 +183,7 @@ export default function App() {
 	}
 
 	// ── Derive display name ──
-	const displayName = user.isAnonymous
-		? "Guest"
-		: user.email || "User";
+	const displayName = user.isAnonymous ? "Guest" : user.email || "User";
 
 	return (
 		<div
@@ -232,6 +252,7 @@ export default function App() {
 						limit={rateLimit.limit}
 					/>
 					<VoucherRedeem
+						isUpgraded={rateLimit.tier === "upgraded"}
 						onUpgrade={() =>
 							setRateLimit((prev) => ({
 								...prev,
@@ -260,10 +281,10 @@ export default function App() {
 							textDecoration: "none",
 						}}
 						aria-label="GitHub"
-          >
-            <div>
-              <GitHubLogoIcon width={16} height={16} />
-            </div>
+					>
+						<div>
+							<GitHubLogoIcon width={16} height={16} />
+						</div>
 					</a>
 					<AgentStatusBadge agent={agent} status={status} />
 					<button
@@ -337,7 +358,9 @@ export default function App() {
 								gap: "8px",
 							}}
 						>
-							<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+							<div
+								style={{ display: "flex", alignItems: "center", gap: "8px" }}
+							>
 								<button
 									type="button"
 									className="btn-secondary"

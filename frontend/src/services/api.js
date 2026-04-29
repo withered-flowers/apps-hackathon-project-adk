@@ -185,4 +185,9 @@ export async function redeemVoucher(code) {
   return res.data;
 }
 
+export async function getUserStatus() {
+  const res = await api.get("/user/status");
+  return res.data;
+}
+
 export default api;

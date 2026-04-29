@@ -87,3 +87,10 @@ class VoucherRedeemResponse(BaseModel):
         default=None, description="New rate limit if successful, e.g., '20 per hour'"
     )
     message: str = Field(..., description="Status message")
+
+
+class UserStatusResponse(BaseModel):
+    """User's current subscription status."""
+
+    is_upgraded: bool = Field(..., description="Whether the user has upgraded rate limits")
+    rate_limit_tier: str = Field(..., description="Rate limit tier: 'registered' or 'upgraded'")

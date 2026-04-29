@@ -2,7 +2,12 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { redeemVoucher } from "../services/api";
 
-export default function VoucherRedeem({ onSuccess, onError, onUpgrade }) {
+export default function VoucherRedeem({
+	isUpgraded,
+	onSuccess,
+	onError,
+	onUpgrade,
+}) {
 	const [code, setCode] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [showSuccess, setShowSuccess] = useState(false);
@@ -43,54 +48,56 @@ export default function VoucherRedeem({ onSuccess, onError, onUpgrade }) {
 
 	return (
 		<>
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: "8px",
-				}}
-			>
-				<input
-					type="text"
-					value={code}
-					onChange={(e) => setCode(e.target.value.toUpperCase())}
-					placeholder="Voucher code"
-					disabled={loading}
+			{!isUpgraded && (
+				<div
 					style={{
-						padding: "6px 10px",
-						borderRadius: "0.5rem",
-						border: "1px solid var(--color-border)",
-						background: "var(--color-bg-secondary)",
-						color: "var(--color-text-primary)",
-						fontSize: "0.75rem",
-						width: "100px",
-						outline: "none",
-					}}
-				/>
-				<button
-					type="button"
-					onClick={handleSubmit}
-					disabled={!canSubmit}
-					style={{
-						padding: "6px 12px",
-						borderRadius: "0.5rem",
-						border: "none",
-						background: canSubmit
-							? "var(--color-accent)"
-							: "var(--color-bg-secondary)",
-						color: canSubmit
-							? "var(--color-bg-primary)"
-							: "var(--color-text-muted)",
-						fontSize: "0.75rem",
-						fontWeight: 500,
-						cursor: canSubmit ? "pointer" : "not-allowed",
-						transition: "all 150ms",
-						opacity: canSubmit ? 1 : 0.6,
+						display: "flex",
+						alignItems: "center",
+						gap: "8px",
 					}}
 				>
-					{loading ? "..." : "Redeem"}
-				</button>
-			</div>
+					<input
+						type="text"
+						value={code}
+						onChange={(e) => setCode(e.target.value.toUpperCase())}
+						placeholder="Voucher code"
+						disabled={loading}
+						style={{
+							padding: "6px 10px",
+							borderRadius: "0.5rem",
+							border: "1px solid var(--color-border)",
+							background: "var(--color-bg-secondary)",
+							color: "var(--color-text-primary)",
+							fontSize: "0.75rem",
+							width: "100px",
+							outline: "none",
+						}}
+					/>
+					<button
+						type="button"
+						onClick={handleSubmit}
+						disabled={!canSubmit}
+						style={{
+							padding: "6px 12px",
+							borderRadius: "0.5rem",
+							border: "none",
+							background: canSubmit
+								? "var(--color-accent)"
+								: "var(--color-bg-secondary)",
+							color: canSubmit
+								? "var(--color-bg-primary)"
+								: "var(--color-text-muted)",
+							fontSize: "0.75rem",
+							fontWeight: 500,
+							cursor: canSubmit ? "pointer" : "not-allowed",
+							transition: "all 150ms",
+							opacity: canSubmit ? 1 : 0.6,
+						}}
+					>
+						{loading ? "..." : "Redeem"}
+					</button>
+				</div>
+			)}
 
 			{showSuccess &&
 				createPortal(
