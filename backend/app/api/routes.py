@@ -1,17 +1,20 @@
 """API route handlers for Decidely.ai — chat, history, and export endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 
 from app.core.auth import get_current_user_id
 from app.core.errors import SessionNotFoundError
 from app.core.firestore import get_session
 from app.core.logging import get_logger
+from app.core.rate_limiter import rate_limit_manager
 from app.models.schemas import (
     ChatRequest,
     ChatResponse,
     HistoryResponse,
     RecentSessionsResponse,
+    VoucherRedeemRequest,
+    VoucherRedeemResponse,
 )
 from app.services.decision_service import (
     generate_session_id,
@@ -22,6 +25,7 @@ from app.services.decision_service import (
 )
 from app.services.markdown_service import generate_markdown_download
 from app.services.report_service import export_report
+from app.services.voucher_service import voucher_service
 
 logger = get_logger("api.routes")
 
@@ -54,6 +58,7 @@ async def _verify_session_ownership(session_id: str, user_id: str) -> dict | Non
 async def chat(
     request: ChatRequest,
     user_id: str = Depends(get_current_user_id),
+    http_request: Request = None,
 ) -> ChatResponse:
     """
     Process a user message and advance the decision pipeline.
@@ -61,8 +66,24 @@ async def chat(
     - Creates a new session if session_id doesn't exist
     - Routes to the appropriate agent based on current session status
     - Returns the agent response, updated status, and decision matrix
+    - Rate limited per user tier (guest: 30/5hr, registered: 3/2hr, upgraded: 20/1hr)
     """
-    # Auto-generate session_id if not provided or empty
+    is_upgraded = voucher_service.is_user_upgraded(user_id)
+    allowed, remaining, reset_ts = rate_limit_manager.check_rate_limit(user_id, is_upgraded)
+
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Try again later.",
+            headers={
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Reset": str(reset_ts),
+                "Retry-After": str(reset_ts),
+            },
+        )
+
+    headers = rate_limit_manager.get_headers(user_id, is_upgraded)
+
     session_id = request.session_id or generate_session_id()
 
     logger.info(
@@ -75,6 +96,11 @@ async def chat(
     response = await process_message(
         session_id=session_id, user_message=request.message, user_id=user_id
     )
+
+    if http_request is not None:
+        for key, value in headers.items():
+            http_request.state.__setattr__(key, value)
+
     return response
 
 
@@ -89,7 +115,22 @@ async def chat_stream(
     Events emitted:
     - status: {agent, status} — emitted at each pipeline phase transition
     - done: {session_id, agent, response, status, matrix} — final payload
+    Rate limited per user tier (guest: 30/5hr, registered: 3/2hr, upgraded: 20/1hr)
     """
+    is_upgraded = voucher_service.is_user_upgraded(user_id)
+    allowed, remaining, reset_ts = rate_limit_manager.check_rate_limit(user_id, is_upgraded)
+
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Try again later.",
+            headers={
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Reset": str(reset_ts),
+                "Retry-After": str(reset_ts),
+            },
+        )
+
     session_id = request.session_id or generate_session_id()
 
     logger.info(
@@ -205,4 +246,29 @@ async def download_markdown_report(
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
+    )
+
+
+@router.post("/voucher/redeem", response_model=VoucherRedeemResponse, tags=["Voucher"])
+async def redeem_voucher(
+    request: VoucherRedeemRequest,
+    user_id: str = Depends(get_current_user_id),
+) -> VoucherRedeemResponse:
+    """
+    Redeem a voucher code to upgrade rate limits.
+
+    Currently only supports "DEMO" code which upgrades to 20 requests per hour.
+    """
+    if user_id == "anonymous":
+        raise HTTPException(status_code=401, detail="Guest users cannot redeem vouchers")
+
+    success, message = voucher_service.redeem_voucher(user_id, request.code)
+
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+
+    return VoucherRedeemResponse(
+        status="upgraded",
+        new_limit="20 per hour",
+        message="Rate limit upgraded successfully",
     )

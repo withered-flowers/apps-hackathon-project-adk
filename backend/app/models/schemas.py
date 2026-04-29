@@ -71,3 +71,19 @@ class RecentSessionsResponse(BaseModel):
     """List of the most recent sessions."""
 
     sessions: list[RecentSessionSummary] = Field(default_factory=list)
+
+
+class VoucherRedeemRequest(BaseModel):
+    """Request body for voucher redemption."""
+
+    code: str = Field(..., description="Voucher code to redeem")
+
+
+class VoucherRedeemResponse(BaseModel):
+    """Response after attempting voucher redemption."""
+
+    status: str = Field(..., description="Status: 'upgraded' or 'error'")
+    new_limit: str | None = Field(
+        default=None, description="New rate limit if successful, e.g., '20 per hour'"
+    )
+    message: str = Field(..., description="Status message")

@@ -1,4 +1,5 @@
 """Domain entity models for Decidely.ai (Firestore/SQLite representations)."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -51,3 +52,11 @@ class DecisionSession(BaseModel):
     transcript: list[Message] = Field(default_factory=list)
     criteria: list[dict[str, Any]] = Field(default_factory=list)
     options: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class VoucherRedemption(BaseModel):
+    """Records a voucher code redemption by a user to prevent duplicates."""
+
+    user_id: str
+    code: str
+    redeemed_at: datetime = Field(default_factory=datetime.utcnow)
