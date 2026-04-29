@@ -175,4 +175,14 @@ export async function downloadMarkdownReport(sessionId) {
   document.body.removeChild(a);
 }
 
+/**
+ * Redeem a voucher code to upgrade rate limits.
+ * @param {string} code - Voucher code to redeem
+ * @returns {Promise<{status: string, new_limit: string|null, message: string}>}
+ */
+export async function redeemVoucher(code) {
+  const res = await api.post("/voucher/redeem", { code });
+  return res.data;
+}
+
 export default api;

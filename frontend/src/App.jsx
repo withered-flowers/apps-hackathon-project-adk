@@ -9,9 +9,12 @@ import ChatInterface from "./components/ChatInterface";
 import DecisionMatrix from "./components/DecisionMatrix";
 import ExportButton from "./components/ExportButton";
 import { ErrorBanner } from "./components/LoadingSpinner";
+import LandingPage from "./components/LandingPage";
 import Login from "./components/Login";
+import RateLimitBanner from "./components/RateLimitBanner";
 import SessionList from "./components/SessionList";
 import ThemeToggle from "./components/ThemeToggle";
+import VoucherRedeem from "./components/VoucherRedeem";
 import { useAuth } from "./context/AuthContext";
 import { newSession, sendMessage } from "./services/api";
 
@@ -29,6 +32,11 @@ export default function App() {
 	const [matrix, setMatrix] = useState(null);
 	const [error, setError] = useState("");
 	const [showSessions, setShowSessions] = useState(false);
+	const [rateLimit] = useState({
+		tier: "registered",
+		remaining: 3,
+		limit: 3,
+	});
 
 	useEffect(() => {
 		localStorage.setItem("theme", theme);
@@ -147,9 +155,9 @@ export default function App() {
 		);
 	}
 
-	// ── Not Authenticated → Show Login ──
+	// ── Not Authenticated → Show Landing Page ──
 	if (!user) {
-		return <Login />;
+		return <LandingPage />;
 	}
 
 	// ── Derive display name ──
@@ -218,6 +226,12 @@ export default function App() {
 					</span>
 
 					<ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+					<RateLimitBanner
+						tier={rateLimit.tier}
+						remaining={rateLimit.remaining}
+						limit={rateLimit.limit}
+					/>
+					<VoucherRedeem />
 					<a
 						href="https://github.com/withered-flowers/apps-hackathon-project-adk"
 						target="_blank"
