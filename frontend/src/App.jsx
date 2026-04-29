@@ -32,7 +32,7 @@ export default function App() {
 	const [matrix, setMatrix] = useState(null);
 	const [error, setError] = useState("");
 	const [showSessions, setShowSessions] = useState(false);
-	const [rateLimit] = useState({
+	const [rateLimit, setRateLimit] = useState({
 		tier: "registered",
 		remaining: 3,
 		limit: 3,
@@ -231,7 +231,16 @@ export default function App() {
 						remaining={rateLimit.remaining}
 						limit={rateLimit.limit}
 					/>
-					<VoucherRedeem />
+					<VoucherRedeem
+						onUpgrade={() =>
+							setRateLimit((prev) => ({
+								...prev,
+								tier: "upgraded",
+								remaining: 20,
+								limit: 20,
+							}))
+						}
+					/>
 					<a
 						href="https://github.com/withered-flowers/apps-hackathon-project-adk"
 						target="_blank"
