@@ -9,6 +9,7 @@ import {
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion } from "framer-motion";
 import { memo, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { TypingIndicator } from "./LoadingSpinner";
 
 export default function ChatInterface({ messages, loading, onSend, disabled }) {
@@ -346,7 +347,7 @@ function MessageBubble({ message, isProgress }) {
 						wordBreak: "break-word",
 					}}
 				>
-					{message.content}
+					<ReactMarkdown>{message.content}</ReactMarkdown>
 				</div>
 			</div>
 		</motion.div>

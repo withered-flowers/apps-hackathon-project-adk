@@ -15,7 +15,7 @@ from typing import Any
 
 from app.agents.primary import DecisionPipeline, get_pipeline
 from app.core.errors import SessionNotFoundError
-from app.core.firestore import get_session, save_session
+from app.core.firestore import count_user_sessions, get_session, save_session
 from app.core.firestore import list_sessions as _list_sessions
 from app.core.logging import get_logger
 from app.mcp import sqlite_client
@@ -23,6 +23,9 @@ from app.models.entities import DecisionSession, Message
 from app.models.schemas import ChatResponse, HistoryResponse, MatrixData, MessageEntry
 
 logger = get_logger("services.decision")
+
+# Maximum number of decisions a permanent (non-anonymous) user can create
+MAX_DECISIONS_PER_USER = 50
 
 
 def _extract_json(text: str) -> dict | None:
@@ -48,7 +51,26 @@ def _extract_json(text: str) -> dict | None:
     return None
 
 
-async def process_message(session_id: str, user_message: str) -> ChatResponse:
+async def _enforce_decision_limit(user_id: str) -> None:
+    """Raise an error if the user has reached their decision limit.
+
+    Anonymous/guest users are exempt from the limit.
+    """
+    if user_id == "anonymous":
+        return
+    count = await count_user_sessions(user_id)
+    if count >= MAX_DECISIONS_PER_USER:
+        raise ValueError(
+            f"You have reached the maximum of {MAX_DECISIONS_PER_USER} decisions. "
+            "Please delete older sessions before creating new ones."
+        )
+
+
+async def process_message(
+    session_id: str,
+    user_message: str,
+    user_id: str = "anonymous",
+) -> ChatResponse:
     """
     Process a user message through the multi-agent pipeline.
 
@@ -64,11 +86,14 @@ async def process_message(session_id: str, user_message: str) -> ChatResponse:
         session = DecisionSession(**existing)
         logger.info("Loaded session=%s status=%s", session_id, session.status)
     else:
-        session = DecisionSession(session_id=session_id)
+        # Enforce per-user decision limit before creating
+        await _enforce_decision_limit(user_id)
+
+        session = DecisionSession(session_id=session_id, user_id=user_id)
         # Store the topic from the first user message
         session_dict: dict[str, Any] = session.model_dump()
         session_dict["topic"] = user_message
-        logger.info("Created new session=%s", session_id)
+        logger.info("Created new session=%s user_id=%s", session_id, user_id)
         session_dict_for_pipeline = session_dict
         session_dict_for_pipeline.pop("transcript", None)
         await save_session(session_dict_for_pipeline)
@@ -93,10 +118,12 @@ async def process_message(session_id: str, user_message: str) -> ChatResponse:
         session_data=session_data,
     )
 
-    # Update session state
+    # T005: Update session state, including new decision fields
     session.status = new_status
     session.criteria = updated_data.get("criteria", session.criteria)
     session.options = updated_data.get("options", session.options)
+    session.decision_type = updated_data.get("decision_type", session.decision_type)
+    session.decision_domain = updated_data.get("decision_domain", session.decision_domain)
 
     # Append assistant response to transcript
     assistant_msg = Message(role="assistant", content=response_text, agent=agent_name)
@@ -147,6 +174,7 @@ async def process_message(session_id: str, user_message: str) -> ChatResponse:
         agent=agent_name,
         response=response_text,
         status=new_status,
+        decision_type=session.decision_type,  # T005
         matrix=matrix,
     )
 
@@ -177,10 +205,12 @@ async def _save_and_build_response(
     new_status: str,
     updated_data: dict,
 ) -> dict:
-    """Persist session state and build the final response dict."""
+    # T006: Update session state, including new decision fields
     session.status = new_status
     session.criteria = updated_data.get("criteria", session.criteria)
     session.options = updated_data.get("options", session.options)
+    session.decision_type = updated_data.get("decision_type", session.decision_type)
+    session.decision_domain = updated_data.get("decision_domain", session.decision_domain)
 
     assistant_msg = Message(role="assistant", content=response_text, agent=agent_name)
     session.transcript.append(assistant_msg)
@@ -220,23 +250,34 @@ async def _save_and_build_response(
         "agent": agent_name,
         "response": response_text,
         "status": new_status,
+        "decision_type": session.decision_type,  # T006
         "matrix": {"options": matrix.options, "criteria": matrix.criteria},
     }
 
 
-async def process_message_stream(session_id: str, user_message: str) -> AsyncGenerator[str]:
+async def process_message_stream(
+    session_id: str,
+    user_message: str,
+    user_id: str = "anonymous",
+    rate_limit_remaining: int | None = None,
+    rate_limit_reset: int | None = None,
+) -> AsyncGenerator[str]:
     """
     Process a user message and stream real-time agent status updates via SSE.
 
     Yields SSE events:
     - status: {agent, status} at each phase transition
+    - ratelimit: {remaining, reset} with updated rate limit info
     - done: final complete payload
     """
     existing = await get_session(session_id)
     if existing:
         session = DecisionSession(**existing)
     else:
-        session = DecisionSession(session_id=session_id)
+        # Enforce per-user decision limit before creating
+        await _enforce_decision_limit(user_id)
+
+        session = DecisionSession(session_id=session_id, user_id=user_id)
         session_dict: dict[str, Any] = session.model_dump()
         session_dict["topic"] = user_message
         await save_session(session_dict)
@@ -257,12 +298,25 @@ async def process_message_stream(session_id: str, user_message: str) -> AsyncGen
     events: list[str] = []
 
     if status == "Interviewing":
-        context = user_message
-        if criteria:
+        # T006/T022: inject decision context if already classified
+        decision_type = session_data.get("decision_type", "")
+        decision_domain = session_data.get("decision_domain", "general")
+        if criteria and decision_type:
             context = (
+                f"Decision Type: {decision_type}\n"
+                f"Decision Domain: {decision_domain}\n\n"
                 f"Existing criteria collected so far: {json.dumps(criteria)}\n\n"
                 f"User says: {user_message}"
             )
+        elif decision_type:
+            context = (
+                f"Decision Type: {decision_type}\n"
+                f"Decision Domain: {decision_domain}\n\n"
+                f"User says: {user_message}"
+            )
+        else:
+            # Not yet classified — pipeline._run_interviewing will classify
+            context = user_message
         response_text = await pipeline._call_agent(pipeline._interviewer, session_id, context)
         parsed = _extract_json(response_text)
         if parsed and parsed.get("criteria_complete"):
@@ -298,7 +352,11 @@ async def process_message_stream(session_id: str, user_message: str) -> AsyncGen
         recommendation = session_data.get("recommendation", "")
         matrix = session_data.get("matrix", {})
         topic = session_data.get("topic", "decision")
+        decision_type = session_data.get("decision_type", "purchase")
+        decision_domain = session_data.get("decision_domain", "general")
         prompt = (
+            f"Decision Type: {decision_type}\n"
+            f"Decision Domain: {decision_domain}\n"
             f"User's original decision question: {topic}\n"
             f"Criteria: {json.dumps(criteria)}\n"
             f"Top recommendation: {recommendation}\n"
@@ -320,6 +378,12 @@ async def process_message_stream(session_id: str, user_message: str) -> AsyncGen
     for event in events:
         yield event
 
+    if rate_limit_remaining is not None:
+        yield _sse_event(
+            "ratelimit",
+            {"remaining": rate_limit_remaining, "reset": rate_limit_reset},
+        )
+
     final = await _save_and_build_response(
         session_id, session, session_data, agent_name, response_text, new_status, updated_data
     )
@@ -337,16 +401,21 @@ async def _run_full_pipeline(
     Returns (updated_data, response_text, new_status, agent_name).
     """
     criteria = session_data.get("criteria", [])
-
-    events.append(
-        _progress_event(
-            "ResearcherAgent",
-            "Researching",
-            "Searching for the best options based on your criteria...",
-        )
-    )
+    decision_type = session_data.get("decision_type", "purchase")
+    decision_domain = session_data.get("decision_domain", "general")
     topic = session_data.get("topic", "the user's decision")
+
+    # T022: decision-type-aware SSE progress messages
+    research_msg = (
+        "Performing deep research across multiple dimensions..."
+        if decision_type == "strategic"
+        else "Searching for the best options based on your criteria..."
+    )
+    events.append(_progress_event("ResearcherAgent", "Researching", research_msg))
+
     research_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"Decision topic: {topic}\n"
         f"User criteria: {json.dumps(criteria)}\n\n"
         "Please research and find the top 3-5 best options."
@@ -378,6 +447,8 @@ async def _run_full_pipeline(
         )
     )
     eval_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"Criteria: {json.dumps(criteria)}\n"
         f"Options: {json.dumps(new_options)}\n\n"
         "Please score these options and produce the decision matrix."
@@ -400,6 +471,8 @@ async def _run_full_pipeline(
         )
     )
     support_prompt = (
+        f"Decision Type: {decision_type}\n"
+        f"Decision Domain: {decision_domain}\n"
         f"User's original decision question: {topic}\n"
         f"Criteria: {json.dumps(criteria)}\n"
         f"Options found: {json.dumps(new_options)}\n"
@@ -434,6 +507,7 @@ async def get_history(session_id: str) -> HistoryResponse:
 
     return HistoryResponse(
         session_id=session_id,
+        decision_type=data.get("decision_type", "purchase"),  # T007: backward compat default
         messages=messages,
         matrix=matrix,
     )
@@ -444,9 +518,11 @@ def generate_session_id() -> str:
     return str(uuid.uuid4())
 
 
-async def list_recent_sessions(limit: int = 5) -> list[dict[str, Any]]:
+async def list_recent_sessions(
+    limit: int = 5, user_id: str = "anonymous"
+) -> list[dict[str, Any]]:
     """Return the most recent sessions with summary info matching RecentSessionSummary."""
-    raw = await _list_sessions(limit)
+    raw = await _list_sessions(limit, user_id=user_id)
     results = []
     for s in raw:
         ts = s.get("last_message_at")

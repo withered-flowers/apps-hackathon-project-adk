@@ -1,0 +1,40 @@
+# apps-hackathon-genai-apac Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-04-26
+
+## Active Technologies
+
+- Python 3.11+ (Backend), JavaScript/TypeScript (Frontend) + FastAPI, google-cloud-firestore, React, Vite, Firebase (001-multi-user-isolation), bun
+
+## Project Structure
+
+```text
+backend/
+frontend/
+tests/
+```
+
+## Commands
+
+cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] pytest [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] ruff check .
+
+## Code Style
+
+Python 3.11+ (Backend), JavaScript/TypeScript (Frontend): Follow standard conventions
+
+## Recent Changes
+
+- 001-multi-user-isolation: Added Python 3.11+ (Backend), JavaScript/TypeScript (Frontend) + FastAPI, google-cloud-firestore, React, Vite, Firebase
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan:
+
+- **004-agent-markdown-rendering**: specs/004-agent-markdown-rendering/plan.md
+- **005-rate-limit-pricing**: specs/005-rate-limit-pricing/plan.md
+- **006-landing-page-pricing**: specs/006-landing-page-pricing/plan.md
+- **007-landing-page-nav-animation**: specs/007-landing-page-nav-animation/plan.md
+<!-- SPECKIT END -->

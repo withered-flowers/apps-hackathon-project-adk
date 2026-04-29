@@ -39,6 +39,9 @@ class ChatResponse(BaseModel):
         ...,
         description="Session status: Interviewing | Researching | Evaluating | Complete",
     )
+    decision_type: str = Field(
+        default="purchase", description="Decision mode: purchase or strategic"
+    )
     matrix: MatrixData = Field(default_factory=MatrixData)
 
 
@@ -46,6 +49,9 @@ class HistoryResponse(BaseModel):
     """Full conversation history for a session."""
 
     session_id: str
+    decision_type: str = Field(
+        default="purchase", description="Decision mode: purchase or strategic"
+    )
     messages: list[MessageEntry] = Field(default_factory=list)
     matrix: MatrixData = Field(default_factory=MatrixData)
 
@@ -65,3 +71,26 @@ class RecentSessionsResponse(BaseModel):
     """List of the most recent sessions."""
 
     sessions: list[RecentSessionSummary] = Field(default_factory=list)
+
+
+class VoucherRedeemRequest(BaseModel):
+    """Request body for voucher redemption."""
+
+    code: str = Field(..., description="Voucher code to redeem")
+
+
+class VoucherRedeemResponse(BaseModel):
+    """Response after attempting voucher redemption."""
+
+    status: str = Field(..., description="Status: 'upgraded' or 'error'")
+    new_limit: str | None = Field(
+        default=None, description="New rate limit if successful, e.g., '20 per hour'"
+    )
+    message: str = Field(..., description="Status message")
+
+
+class UserStatusResponse(BaseModel):
+    """User's current subscription status."""
+
+    is_upgraded: bool = Field(..., description="Whether the user has upgraded rate limits")
+    rate_limit_tier: str = Field(..., description="Rate limit tier: 'registered' or 'upgraded'")
