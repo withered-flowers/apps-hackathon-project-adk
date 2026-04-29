@@ -36,4 +36,5 @@ shell commands, and other important information, read the current plan:
 - **004-agent-markdown-rendering**: specs/004-agent-markdown-rendering/plan.md
 - **005-rate-limit-pricing**: specs/005-rate-limit-pricing/plan.md
 - **006-landing-page-pricing**: specs/006-landing-page-pricing/plan.md
+- **007-landing-page-nav-animation**: specs/007-landing-page-nav-animation/plan.md
 <!-- SPECKIT END -->
