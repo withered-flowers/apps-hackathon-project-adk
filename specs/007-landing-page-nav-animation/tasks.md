@@ -61,8 +61,10 @@ This feature enhances the Decidely landing page with:
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [ ] T017 Run frontend npm run dev and verify all navigation and animations work
-- [ ] T018 Verify 60fps animation performance (no jank)
-- [ ] T019 Test keyboard navigation and accessibility
+- [ ] T018 [P] Write Navbar component tests in frontend/src/components/__tests__/Navbar.test.jsx
+- [ ] T019 [P] Write LandingPage animation tests in frontend/src/components/__tests__/LandingPage.animations.test.jsx
+- [ ] T020 Verify 60fps animation performance (no jank)
+- [ ] T021 Test keyboard navigation and accessibility
 
 ## Dependency Graph
 
@@ -78,37 +80,37 @@ Phase 2 (Foundational)
 └─────────────────────────────────┘
       │
       ▼
-┌─────────────────────────────────┐
-│  Phase 4 (US2) - Active State  │ depends on US1
-└─────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────┐
-│  Phase 5 (US3) - Animations    │ depends on US1
-└─────────────────────────────────┘
-      │
-      ▼
+┌──────────────┬──────────────────┐
+│ US2 - Active │ US3 - Animations │ (can run in parallel)
+└──────────────┴──────────────────┘
+      │                │
+      └───────┬────────┘
+              ▼
 Phase 6 (Polish)
 ```
 
 ## Parallel Execution Examples
 
-**Example 1**: US1, US2, US3 can run in parallel after Phase 2:
+**Example 1**: US1 must complete first (required foundation):
 ```
 Worker 1: T004, T005, T006, T007, T008 (US1 - Navigation)
-Worker 2: T009, T010, T011 (US2 - Active State)
-Worker 3: T012, T013, T014, T015, T016 (US3 - Animations)
+```
+
+**Example 2**: After US1 complete, US2 and US3 run in parallel:
+```
+Worker 1: T009, T010, T011 (US2 - Active State)
+Worker 2: T012, T013, T014, T015, T016 (US3 - Animations)
 ```
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 19 |
+| Total Tasks | 21 |
 | User Story 1 Tasks | 5 |
 | User Story 2 Tasks | 3 |
 | User Story 3 Tasks | 5 |
-| Parallelizable Tasks | 11 |
+| Parallelizable Tasks | 13 |
 | MVP Scope | User Story 1 (T004-T008) |
 
 ## Independent Test Criteria
