@@ -259,12 +259,15 @@ async def process_message_stream(
     session_id: str,
     user_message: str,
     user_id: str = "anonymous",
+    rate_limit_remaining: int | None = None,
+    rate_limit_reset: int | None = None,
 ) -> AsyncGenerator[str]:
     """
     Process a user message and stream real-time agent status updates via SSE.
 
     Yields SSE events:
     - status: {agent, status} at each phase transition
+    - ratelimit: {remaining, reset} with updated rate limit info
     - done: final complete payload
     """
     existing = await get_session(session_id)
@@ -374,6 +377,12 @@ async def process_message_stream(
 
     for event in events:
         yield event
+
+    if rate_limit_remaining is not None:
+        yield _sse_event(
+            "ratelimit",
+            {"remaining": rate_limit_remaining, "reset": rate_limit_reset},
+        )
 
     final = await _save_and_build_response(
         session_id, session, session_data, agent_name, response_text, new_status, updated_data

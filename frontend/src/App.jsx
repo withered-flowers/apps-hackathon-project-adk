@@ -105,6 +105,12 @@ export default function App() {
 							},
 						]);
 					},
+					(rateLimitInfo) => {
+						setRateLimit((prev) => ({
+							...prev,
+							remaining: rateLimitInfo.remaining,
+						}));
+					},
 				);
 
 				setStatus(data.status);

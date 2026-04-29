@@ -55,9 +55,10 @@ async function getAuthHeader() {
  * @param {string} message
  * @param {function} onStatus - callback({agent, status}) for badge
  * @param {function} onProgress - callback({agent, status, message}) for chat
+ * @param {function} onRateLimit - callback({remaining, reset}) for rate limit tracking
  * @returns {Promise<{session_id, agent, response, status, matrix}>}
  */
-export async function sendMessage(sessionId, message, onStatus, onProgress) {
+export async function sendMessage(sessionId, message, onStatus, onProgress, onRateLimit) {
   const authHeader = await getAuthHeader();
 
   return new Promise((resolve, reject) => {
@@ -86,6 +87,8 @@ export async function sendMessage(sessionId, message, onStatus, onProgress) {
               onStatus(data);
             } else if (eventType === "progress" && onProgress) {
               onProgress(data);
+            } else if (eventType === "ratelimit" && onRateLimit) {
+              onRateLimit(data);
             } else if (eventType === "done") {
               resolve(data);
             }

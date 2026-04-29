@@ -142,7 +142,13 @@ async def chat_stream(
     )
 
     return StreamingResponse(
-        process_message_stream(session_id, request.message, user_id=user_id),
+        process_message_stream(
+            session_id,
+            request.message,
+            user_id=user_id,
+            rate_limit_remaining=remaining,
+            rate_limit_reset=int(reset_ts),
+        ),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
