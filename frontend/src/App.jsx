@@ -49,19 +49,17 @@ export default function App() {
 		}
 	}, [theme]);
 
-	useEffect(() => {
+		useEffect(() => {
 		if (!user) return;
 
 		async function fetchUserStatus() {
 			setRateLimit({ tier: "registered", remaining: 3, limit: 3 });
 			try {
 				const status = await getUserStatus();
-				if (status.is_upgraded) {
-					setRateLimit({
-						tier: "upgraded",
-						remaining: 20,
-						limit: 20,
-					});
+				if (status.rate_limit_tier === "guest") {
+					setRateLimit({ tier: "guest", remaining: 30, limit: 30 });
+				} else if (status.rate_limit_tier === "upgraded") {
+					setRateLimit({ tier: "upgraded", remaining: 20, limit: 20 });
 				}
 			} catch {
 				// Keep default registered tier on error

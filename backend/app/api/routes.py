@@ -284,8 +284,8 @@ async def get_user_status(
 
     Returns whether the user has upgraded rate limits and their current tier.
     """
-    is_upgraded = voucher_service.is_user_upgraded(user_id)
+    tier = voucher_service.get_user_tier(user_id)
     return UserStatusResponse(
-        is_upgraded=is_upgraded,
-        rate_limit_tier="upgraded" if is_upgraded else "registered",
+        is_upgraded=tier == "upgraded",
+        rate_limit_tier=tier,
     )

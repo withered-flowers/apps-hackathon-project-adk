@@ -71,5 +71,20 @@ class VoucherService:
         user_data = user_doc.to_dict()
         return user_data.get("rate_limit_tier") == "upgraded"
 
+    def get_user_tier(self, user_id: str) -> str:
+        """Get the actual rate limit tier for a user.
+
+        Args:
+            user_id: The user's Firebase UID or "anonymous" for guests
+
+        Returns:
+            Tier name: "guest", "registered", or "upgraded"
+        """
+        if user_id == "anonymous":
+            return "guest"
+        if self.is_user_upgraded(user_id):
+            return "upgraded"
+        return "registered"
+
 
 voucher_service = VoucherService()
