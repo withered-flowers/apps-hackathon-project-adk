@@ -6,7 +6,7 @@ Decidely.ai helps you make confident decisions through a structured AI-guided pr
 
 ## Deployment Link
 
-- Backend(Cloud Run): [Here](https://decidely-ai-backend-42922152355.us-central1.run.app)
+- Backend(Cloud Run): [Here](https://decidely-ai-backend-2-42922152355.us-central1.run.app)
 - Frontend(Github Pages): [Here](https://withered-flowers.github.io/apps-hackathon-genai-apac/)
 - Frontend(Cloud Storage): [Here](https://storage.googleapis.com/apps-hackathon-project-adk/index.html)
 
@@ -39,12 +39,12 @@ flowchart LR
         direction TB
         UC0([🔐 Authenticate / Login]):::usecase
         UC1([💬 Submit a Decision Dilemma]):::usecase
+        UC1a([⚙️ Auto-classify Decision Mode]):::usecase
         UC2([🗣️ Answer Clarifying Questions]):::usecase
         UC3([👀 Monitor Live AI Swarm Status]):::usecase
         UC4([📊 Review Scored Decision Matrix]):::usecase
         UC5([📥 Download Markdown Report]):::usecase
         UC6([🕒 View Past Sessions]):::usecase
-        UC7([📤 Export to Google Drive]):::usecase
         UC8([🎟️ Redeem Voucher Code]):::usecase
     end
     class System boundary
@@ -57,50 +57,20 @@ flowchart LR
     User --> UC4
     User --> UC5
     User --> UC6
-    User --> UC7
     User --> UC8
 
     %% Optional dependency flow
     UC0 -.->|Enables| UC1
-    UC1 -.->|Triggers| UC3
+    UC1 -.->|Triggers| UC1a
+    UC1a -.->|Contextualizes| UC3
     UC4 -.->|Enables| UC5
-    UC4 -.->|Enables| UC7
 ```
 
 ## Mock UI Layout Diagram
 
 ### Landing Page (Unauthenticated Users)
 
-```mermaid
-flowchart TB
-    classDef header fill:#fcfcf9,stroke:#e4e4e7,stroke-width:1px,color:#18181b,rx:8px,ry:8px
-    classDef hero fill:#ffffff,stroke:#e4e4e7,stroke-width:2px,color:#18181b,rx:16px,ry:16px
-    classDef feature fill:#f8fafc,stroke:#e4e4e7,stroke-width:1px,rx:12px,ry:12px
-    classDef pricing fill:#ffffff,stroke:#6366f1,stroke-width:2px,rx:12px,ry:12px
-    classDef cta fill:#4f46e5,stroke:#4f46e5,stroke-width:0px,color:#ffffff,rx:8px,ry:8px
-
-    NavLanding["<b>🧠 Decidely.ai</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ Sign In ] &nbsp; [ Get Started ]"]:::header
-
-    subgraph Landing["🖥️ Landing Page"]
-        Hero["<b>Make Better Decisions with AI-Powered Analysis</b><br/><br/>Multi-agent decision support powered by Google ADK<br/><br/>[ Get Started Free ]"]:::hero
-
-        subgraph HowItWorks["<b>How It Works</b>"]
-            HW1["<b>🎯 Submit Your Dilemma</b><br/>Describe your decision problem"]:::feature
-            HW2["<b>🤖 AI Agents Analyze</b><br/>Interview, Research & Evaluate"]:::feature
-            HW3["<b>📊 Get Recommendations</b><br/>Transparent scoring & reports"]:::feature
-        end
-
-        subgraph Pricing["<b>Pricing Tiers</b>"]
-            PG["<b>Guest</b><br/>30 decisions/5hrs<br/>Limited features<br/>[ Continue as Guest ]"]:::pricing
-            PR["<b>Registered</b><br/>3 decisions/2hrs<br/>Session history<br/>[ Sign Up Free ]"]:::pricing
-            PU["<b>Upgraded</b><br/>20 decisions/1hr<br/>Priority support<br/>[ Upgrade Now ]"]:::pricing
-        end
-
-        Hero ~~~ HowItWorks ~~~ Pricing
-    end
-
-    NavLanding --> Landing
-```
+[![Landing Page](documents/assets/landing_page.png)](documents/assets/landing_page.png)
 
 ### Login Page
 
@@ -157,7 +127,7 @@ flowchart TB
 
             Breakdown["<b>MacBook Air M2</b><br/><span style='color:#10b981'>+ Great value for students</span><br/><span style='color:#10b981'>+ Excellent battery life</span><br/><span style='color:#a1a1aa'>- Older generation chip</span>"]:::panel
 
-            ExportSection["<b>Documentation Lifecycle</b><br/><br/>[ 📥 Download Markdown ] &nbsp; [ 📤 Export to Drive ]"]:::panel
+            ExportSection["<b>Documentation Lifecycle</b><br/><br/>[ 📥 Download Markdown ]"]:::panel
 
             Title ~~~ Table ~~~ Breakdown ~~~ ExportSection
         end
@@ -190,6 +160,22 @@ flowchart TB
     MobileContent --- Drawer
 ```
 
+## Adaptive Decision Modes
+
+The decision pipeline features an **Adaptive Classifier** that automatically categorizes the user's initial dilemma to optimize downstream agent behavior. The classification is locked for the duration of the session and dictates the entire swarm's approach:
+
+1. **Purchase Mode** (`decision_type = "purchase"`)
+   - **Triggered by**: Requests to buy specific products or services with personal/consumer language or price caps (e.g., *"Which laptop should I buy under $1200?"*).
+   - **Agent Behavior**: The swarm focuses on finding specific, actionable, and buyable options. The Researcher identifies direct product matches, and the Evaluator ranks them based on cost and consumer features.
+   - **Performance**: Optimized with a rapid 30-second execution timeout.
+
+2. **Strategic Mode** (`decision_type = "strategic"`)
+   - **Triggered by**: Organizational language, long-term impact decisions, or complex vendor evaluations (e.g., *"Should we migrate from GCP to AWS?"*).
+   - **Agent Behavior**: The swarm shifts to multi-dimensional analysis. The Researcher explores distinct strategic paths, focusing on Total Cost of Ownership (TCO), risks, compliance, and vendor lock-in, rather than simple product listings.
+   - **Performance**: Granted an extended 90-second execution timeout for deep research.
+
+Additionally, the classifier determines a **Decision Domain** (`finance`, `infrastructure`, or `general`), which is injected into the prompt of every downstream agent (Interviewer, Researcher, Evaluator, Supporter) to ensure highly contextualized responses.
+
 ## Architecture
 
 ```mermaid
@@ -210,7 +196,7 @@ graph TD
     BE -->|"<b>check rate limit</b>"| RL["<b>⚡ Rate Limiter</b><br/>Guest: 30/5hrs<br/>Registered: 3/2hrs<br/>Upgraded: 20/1hr"]
     BE -->|"<b>orchestrate</b>"| PA["<b>🎯 DecisionPipeline<br/>Orchestrator</b>"]
 
-    PA -->|"<b>purchase / strategic</b>"| IA["<b>💬 Interviewer Agent</b><br/>Criteria Extraction"]
+    PA -->|"<b>purchase / strategic (mode)</b>"| IA["<b>💬 Interviewer Agent</b><br/>Criteria Extraction"]
     PA -->|"<b>grounded research</b>"| RA["<b>🔍 Researcher Agent</b><br/>Google Search"]
     PA -->|"<b>weighted scoring</b>"| EA["<b>⚖️ Evaluator Agent</b><br/>Decision Matrix"]
     PA -->|"<b>final recommendation</b>"| SA["<b>🎉 Supporter Agent</b><br/>Final Report"]
@@ -218,7 +204,6 @@ graph TD
     EA -.->|"<b>read/write criteria & options</b>"| MCP[("<b>🗃️ SQLite MCP<br/>Decision Matrix</b>")]
     BE -->|"<b>persist sessions</b>"| FS[("<b>📦 Firestore<br/>Session Storage</b>")]
     BE -->|"<b>generate markdown</b>"| MG["<b>📥 Markdown Generator MCP</b><br/>Session Summary + SWOT"]
-    BE -->|"<b>export</b>"| DM["<b>📤 Google Drive MCP</b><br/>Report Export"]
     BE -->|"<b>redeem voucher</b>"| VS["<b>🎟️ Voucher Service</b><br/>DEMO → Upgraded Tier"]
 
     class User userNode
@@ -229,7 +214,7 @@ graph TD
     class PA orchestratorNode
     class IA,RA,EA,SA agentNode
     class MCP,FS storageNode
-    class DM,MG exportNode
+    class MG exportNode
     class VS rateNode
 ```
 
@@ -243,7 +228,7 @@ graph TD
 | Authentication | Firebase Auth (Email/Password, Google OAuth, Anonymous) |
 | Storage | Google Cloud Firestore |
 | Decision Matrix | SQLite via MCP |
-| Report Export | Google Drive via MCP, Markdown Generator MCP |
+| Report Export | Markdown Generator MCP |
 | Rate Limiting | Token bucket per user tier (Guest/Registered/Upgraded) |
 | Deployment | Cloud Run (backend), GitHub Pages (frontend), Cloud Storage (frontend) |
 
@@ -300,7 +285,7 @@ backend/
 │   │   ├── researcher.py    # Google Search grounding
 │   │   ├── evaluator.py     # Weighted scoring matrix
 │   │   └── supporter.py     # Final recommendation
-│   ├── mcp/             # MCP clients (SQLite, Drive, Markdown Generator)
+│   ├── mcp/             # MCP clients (SQLite, Markdown Generator)
 │   ├── core/            # Config, Firebase Auth, Firestore, rate limiter, logging
 │   ├── api/             # FastAPI routes
 │   ├── models/          # Pydantic schemas & entities
@@ -337,7 +322,7 @@ frontend/
 
 - **Budget**: Targets <$5/month on Cloud Run (scale-to-zero) + Firestore free tier
 - **Authentication**: Firebase Auth with email/password, Google OAuth, and anonymous guest login
-- **MCP**: SQLite MCP for decision matrix storage, Drive MCP for export, Markdown Generator for reports
+- **MCP**: SQLite MCP for decision matrix storage, Markdown Generator for reports
 - **ADK**: DecisionPipeline orchestrator in `app/agents/primary.py` with adaptive modes (purchase/strategic)
 - **Context**: Multi-turn context maintained via session state in Firestore
 - **Rate Limiting**: Token bucket per tier — Guest (30/5hrs), Registered (3/2hrs), Upgraded (20/1hr)
